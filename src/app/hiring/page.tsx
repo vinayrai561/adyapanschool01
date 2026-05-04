@@ -45,48 +45,6 @@ export default function HiringPage() {
 
   return (
     <div className="min-h-screen bg-[#0f1419]">
-      {/* Navbar */}
-      <motion.nav
-        initial={{ y: -60, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.5, ease: customEase }}
-        className="sticky top-0 z-50 bg-[#0f1419]/95 backdrop-blur-md border-b border-gray-800"
-      >
-        <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-          {/* Logo */}
-          <Link href="/company" className="flex items-center space-x-2.5">
-            <div
-              className="w-9 h-9 rounded-full flex items-center justify-center relative overflow-hidden flex-shrink-0"
-              style={{
-                background: 'radial-gradient(circle at 38% 32%, #ffd97a 0%, #f90 45%, #e07000 100%)',
-                boxShadow: '0 2px 8px rgba(255,153,0,0.4)',
-              }}
-            >
-              <div className="absolute top-0.5 left-1 w-4 h-2 bg-white/30 rounded-full blur-[2px]" />
-              <span className="relative z-10 font-extrabold text-[10px] leading-none" style={{ color: '#5a1a00' }}>
-                ady.
-              </span>
-            </div>
-            <span className="text-white text-xl font-bold tracking-tight">adyapan</span>
-          </Link>
-
-          {/* Right Actions */}
-          <div className="flex items-center space-x-4">
-            <Link href="/company" className="text-gray-300 hover:text-white text-sm font-medium transition-colors">
-              Back to Company
-            </Link>
-            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-              <Link
-                href="/auth?type=organization"
-                className="px-5 py-2 bg-[#f90] text-[#1a1a2e] rounded-full text-sm font-semibold hover:bg-[#e07000] transition-colors"
-              >
-                Sign In
-              </Link>
-            </motion.div>
-          </div>
-        </div>
-      </motion.nav>
-
       {/* Main Content */}
       <div className="max-w-6xl mx-auto px-6 py-12">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

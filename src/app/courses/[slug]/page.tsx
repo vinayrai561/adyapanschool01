@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { useState } from 'react';
 import { Star, Play, CheckCircle, Download, MessageCircle, Clock, Users, Award } from 'lucide-react';
+import PricingModal from '@/components/PricingModal';
 
 // Helper function to get brochure filename from course slug
 const getBrochureFilename = (slug: string, courseTitle: string) => {
@@ -517,6 +518,7 @@ export default function CoursePage() {
   const params = useParams();
   const slug = (params?.slug as string) || '';
   const [activeModule, setActiveModule] = useState(0);
+  const [isPricingOpen, setIsPricingOpen] = useState(false);
   
   // Try to get course from predefined data, otherwise generate it
   let course = courseData[slug];
@@ -632,6 +634,14 @@ export default function CoursePage() {
                   <Download className="w-4 h-4" />
                   <span>Download Brochure</span>
                 </motion.a>
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => setIsPricingOpen(true)}
+                  className="px-6 py-3 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition-colors flex items-center justify-center space-x-2"
+                >
+                  <span>Enroll now</span>
+                </motion.button>
               </div>
             </motion.div>
 
@@ -1004,6 +1014,8 @@ export default function CoursePage() {
           </div>
         </div>
       </section>
+
+      <PricingModal isOpen={isPricingOpen} onClose={() => setIsPricingOpen(false)} />
     </div>
   );
 }

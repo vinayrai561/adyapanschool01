@@ -9,6 +9,8 @@ export interface User {
   name: string;
   role: 'STUDENT' | 'COMPANY' | 'ADMIN';
   createdAt: string;
+  selectedProgram?: string | null;
+  selectedAmount?: number | null;
   studentProfile?: any;
   companyProfile?: any;
 }
@@ -30,6 +32,8 @@ export interface SignupData {
   lastName?: string;
   fullName?: string;
   companyName?: string;
+  selectedProgram?: string;
+  selectedAmount?: number;
   email: string;
   password: string;
   confirmPassword: string;

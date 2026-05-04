@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 import { Award, Users, Zap, Target, Heart, Globe, BookOpen, TrendingUp } from 'lucide-react';
+import AuthNavButtons from '@/components/AuthNavButtons';
 
 const customEase = [0.22, 1, 0.36, 1] as const;
 
@@ -96,56 +97,6 @@ export default function AboutPage() {
 
   return (
     <div className="min-h-screen bg-[#f5f0eb]">
-      {/* Navbar */}
-      <motion.nav
-        initial={{ y: -60, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.5, ease: customEase }}
-        className="sticky top-0 z-50 bg-gray-800 border-b border-gray-700"
-      >
-        <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-          {/* Logo */}
-          <Link href="/" className="flex items-center space-x-2.5">
-            <img
-              src="/images/adyapan-logo-bg.png"
-              alt="Adyapan Logo"
-              className="h-10 w-auto"
-            />
-          </Link>
-
-          {/* Nav Links */}
-          <div className="hidden md:flex items-center space-x-8">
-            <Link href="/" className="text-white hover:text-gray-300 text-sm font-medium transition-colors">
-              Home
-            </Link>
-            <Link href="/about" className="text-[#ffa800] font-medium text-sm">
-              About Us
-            </Link>
-            <Link href="/gallery" className="text-white hover:text-[#ffa800] text-sm font-medium transition-colors">
-              Our Gallery
-            </Link>
-            <Link href="/company" className="text-white hover:text-gray-300 text-sm font-medium transition-colors">
-              For Companies
-            </Link>
-          </div>
-
-          {/* Actions */}
-          <div className="flex items-center space-x-4">
-            <Link href="/auth" className="text-white hover:text-gray-300 text-sm font-medium transition-colors">
-              Login
-            </Link>
-            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-              <Link
-                href="/auth"
-                className="px-5 py-2 bg-[#ffa800] text-white rounded-full text-sm font-semibold hover:bg-[#e69500] transition-colors"
-              >
-                Sign Up
-              </Link>
-            </motion.div>
-          </div>
-        </div>
-      </motion.nav>
-
       {/* Hero Section */}
       <section ref={sectionRef} className="relative min-h-[60vh] flex items-center overflow-hidden bg-[#f5f0eb]">
         {/* Background Video with Progressive Loading */}
@@ -977,10 +928,10 @@ export default function AboutPage() {
             </p>
             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
               <Link
-                href="/auth"
+                href="/programs"
                 className="inline-block px-10 py-4 bg-[#f90] text-white rounded-lg font-bold text-lg hover:bg-[#e07000] transition-colors"
               >
-                Start Your Journey →
+                Explore Courses →
               </Link>
             </motion.div>
           </motion.div>
@@ -1028,6 +979,7 @@ export default function AboutPage() {
           </div>
           <div className="border-t border-gray-200 pt-8 text-center text-gray-600 text-sm">
             <p>&copy; 2024 Adyapan. All rights reserved.</p>
+            <p className="text-gray-400 text-xs mt-1">Developed by <span className="text-[#ffa800] font-semibold">Rupesh</span> ✦ with ❤️</p>
           </div>
         </div>
       </footer>

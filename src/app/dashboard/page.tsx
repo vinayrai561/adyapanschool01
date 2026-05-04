@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { 
   TrendingUp, 
   Target, 
@@ -37,7 +38,22 @@ const recommendedTasks = [
 ];
 
 export default function DashboardPage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [activeTab, setActiveTab] = useState<'overview' | 'progress' | 'tasks'>('overview');
+  const selectedProgram = searchParams.get('program');
+  const selectedAmount = searchParams.get('amount');
+  const formattedSelectedAmount = selectedAmount
+    ? `₹${Number(selectedAmount).toLocaleString('en-IN')}`
+    : null;
+
+  const handleBuyNow = () => {
+    const params = new URLSearchParams();
+    if (selectedProgram) params.set('program', selectedProgram);
+    if (selectedAmount) params.set('amount', selectedAmount);
+    const query = params.toString();
+    router.push(query ? `/signup?${query}` : '/signup');
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50 py-12">
@@ -46,16 +62,32 @@ export default function DashboardPage() {
         <div className="mb-8">
           <div className="flex flex-col md:flex-row md:items-center justify-between mb-6">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">Welcome back, John!</h1>
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">Welcome back, Rupesh!</h1>
               <p className="text-gray-600">Here's your learning and earning progress</p>
             </div>
             <div className="mt-4 md:mt-0">
-              <div className="inline-flex items-center px-4 py-2 bg-primary-50 text-primary-700 rounded-lg">
-                <Star className="w-4 h-4 mr-2" />
-                <span className="font-medium">Level 3: Advanced Learner</span>
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+                <div className="inline-flex items-center px-4 py-2 bg-primary-50 text-primary-700 rounded-lg">
+                  <Star className="w-4 h-4 mr-2" />
+                  <span className="font-medium">Level 3: Advanced Learner</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleBuyNow}
+                  className="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium"
+                >
+                  Buy Now
+                </button>
               </div>
             </div>
           </div>
+
+          {(selectedProgram || selectedAmount) && (
+            <div className="mb-6 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800">
+              Selected purchase
+              {selectedProgram ? `: ${selectedProgram}` : ''} {formattedSelectedAmount ? ` - ${formattedSelectedAmount}` : ''}
+            </div>
+          )}
 
           {/* Tabs */}
           <div className="border-b border-gray-200">

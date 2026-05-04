@@ -172,6 +172,8 @@ export default function HeroSection() {
               type="text"
               placeholder="Find your passion"
               value={searchQuery}
+              autoComplete="off"
+              suppressHydrationWarning
               onChange={(e) => {
                 setSearchQuery(e.target.value);
                 setShowSuggestions(e.target.value.length > 0);

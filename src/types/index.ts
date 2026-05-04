@@ -3,6 +3,9 @@ export interface User {
   email: string;
   name: string | null;
   role: 'STUDENT' | 'COMPANY' | 'ADMIN';
+  companyName?: string | null;
+  selectedProgram?: string | null;
+  selectedAmount?: number | null;
   createdAt: Date;
   updatedAt: Date;
 }

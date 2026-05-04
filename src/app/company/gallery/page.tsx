@@ -3,6 +3,7 @@ import { motion, AnimatePresence, useScroll, useSpring } from 'framer-motion';
 import Link from 'next/link';
 import { useState, useEffect, useRef } from 'react';
 import { X, ChevronLeft, ChevronRight, ChevronRight as ArrowR } from 'lucide-react';
+import AuthNavButtons from '@/components/AuthNavButtons';
 
 const E = [0.22, 1, 0.36, 1] as const;
 
@@ -88,35 +89,6 @@ export default function GalleryPage() {
   return (
     <div className="min-h-screen bg-white font-sans overflow-x-hidden">
       <ScrollBar />
-
-      {/* ── NAVBAR ── */}
-      <nav className="sticky top-0 z-50 bg-[#1a202c] border-b border-gray-800">
-        <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-          {/* Logo */}
-          <Link href="/company">
-            <img src="/images/adyapan-logo-bg.png" alt="Adyapan" className="h-10 w-auto" />
-          </Link>
-
-          {/* Center Links */}
-          <div className="hidden md:flex items-center gap-8 text-sm font-medium">
-            {[['/company', 'Home'], ['/company/about', 'About Us'], ['/company/gallery', 'Our Gallery'], ['#', 'Hire Talent']].map(([h, l]) => (
-              <Link key={l} href={h} className={`transition-colors ${l === 'Our Gallery' ? 'text-[#ffa800]' : 'text-white hover:text-gray-300'}`}>
-                {l}
-              </Link>
-            ))}
-          </div>
-
-          {/* Right Actions */}
-          <div className="flex items-center gap-6">
-            <Link href="/auth?type=organization" className="text-sm font-medium text-white hover:text-gray-300 transition-colors">
-              Login
-            </Link>
-            <Link href="/auth?type=organization" className="px-6 py-2 bg-[#ffa800] text-white rounded-full text-sm font-semibold hover:bg-[#e69500] transition-colors">
-              Sign Up
-            </Link>
-          </div>
-        </div>
-      </nav>
 
       {/* ── HERO ── */}
       <section className="relative bg-[#c8102e] overflow-hidden min-h-[480px] flex items-center">
@@ -269,7 +241,8 @@ export default function GalleryPage() {
             {/* Logo col */}
             <div>
               <img src="/images/adyapan-logo-bg.png" alt="Adyapan" className="h-10 w-auto mb-3" />
-              <p className="text-gray-600 text-xs leading-relaxed">© 2024 Adyapan Inc. All rights reserved.</p>
+              <p className="text-gray-600 text-xs leading-relaxed">© 2024 Adyapan Inc.</p>
+              <p className="text-gray-600 text-xs mt-1">Developed by <span className="text-[#ffa800] font-semibold">Rupesh</span></p>
             </div>
             {/* Quick Links */}
             <div>
@@ -295,6 +268,7 @@ export default function GalleryPage() {
           </div>
           <div className="border-t border-gray-800 pt-6 text-center">
             <p className="text-gray-700 text-xs">© 2024 Adyapan Inc. All rights reserved.</p>
+            <p className="text-gray-500 text-xs mt-1">Developed by <span className="text-[#ffa800] font-semibold">Rupesh</span> ✦ with ❤️</p>
           </div>
         </div>
       </footer>

@@ -7,6 +7,7 @@ import {
   Users, Target, Award, Briefcase, DollarSign, Clock, CheckCircle,
   Globe, TrendingUp, Shield, BookOpen, Zap, ChevronRight
 } from 'lucide-react';
+import AuthNavButtons from '@/components/AuthNavButtons';
 
 const customEase = [0.22, 1, 0.36, 1] as const;
 
@@ -30,53 +31,6 @@ export default function CampusAmbassadorPage() {
 
   return (
     <div className="min-h-screen bg-[#f5f0eb]">
-      {/* Navbar */}
-      <motion.nav
-        initial={{ y: -80, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.8, ease: customEase }}
-        className="sticky top-0 z-50 bg-gray-800/95 backdrop-blur-md border-b border-gray-700"
-      >
-        <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-          {/* Logo */}
-          <Link href="/" className="flex items-center space-x-2.5">
-            <img
-              src="/images/adyapan-logo-bg.png"
-              alt="Adyapan Logo"
-              className="h-10 w-auto"
-            />
-          </Link>
-
-          {/* Nav Links */}
-          <div className="hidden md:flex items-center space-x-8">
-            <Link href="/" className="text-white hover:text-gray-300 text-sm font-medium transition-colors">
-              Home
-            </Link>
-            <Link href="/about" className="text-white hover:text-gray-300 text-sm font-medium transition-colors">
-              About Us
-            </Link>
-            <Link href="/campus-ambassador" className="text-[#ffa800] font-medium text-sm">
-              Campus Ambassador
-            </Link>
-          </div>
-
-          {/* Actions */}
-          <div className="flex items-center space-x-4">
-            <Link href="/auth" className="text-white hover:text-gray-300 text-sm font-medium transition-colors">
-              Login
-            </Link>
-            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-              <Link
-                href="/auth"
-                className="px-5 py-2 bg-[#ffa800] text-white rounded-full text-sm font-semibold hover:bg-[#e69500] transition-colors"
-              >
-                Sign Up
-              </Link>
-            </motion.div>
-          </div>
-        </div>
-      </motion.nav>
-
       {/* Hero Section */}
       <section className="relative py-20 px-6 overflow-hidden">
         {/* Background Video */}

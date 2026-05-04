@@ -4,14 +4,17 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { LogOut, User, Briefcase, Users, TrendingUp } from 'lucide-react';
+import { User, Briefcase, Users, TrendingUp } from 'lucide-react';
 import axios from 'axios';
+import ProfileMenu from '@/components/ProfileMenu';
 
 interface User {
   id: string;
   email: string;
   name: string;
   role: string;
+  selectedProgram?: string | null;
+  selectedAmount?: number | null;
 }
 
 export default function CompanyDashboard() {
@@ -19,6 +22,8 @@ export default function CompanyDashboard() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const formattedSelectedAmount =
+    user?.selectedAmount != null ? `₹${user.selectedAmount.toLocaleString('en-IN')}` : null;
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -75,25 +80,6 @@ export default function CompanyDashboard() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#0f1419] via-[#1a2a4e] to-[#0f1419]">
-      {/* Navbar */}
-      <nav className="bg-[#1a2a4e] border-b border-gray-700">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <div className="w-10 h-10 bg-gradient-to-br from-orange-400 to-orange-600 rounded-full flex items-center justify-center">
-              <span className="text-white font-bold">ady.</span>
-            </div>
-            <span className="text-xl font-bold text-white">Adyapan</span>
-          </div>
-          <button
-            onClick={handleLogout}
-            className="flex items-center space-x-2 px-4 py-2 text-gray-300 hover:bg-[#2a3a5e] rounded-lg transition-colors"
-          >
-            <LogOut className="w-4 h-4" />
-            <span>Logout</span>
-          </button>
-        </div>
-      </nav>
-
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Welcome Section */}
@@ -109,6 +95,21 @@ export default function CompanyDashboard() {
             Manage your hiring pipeline and find the best talent
           </p>
         </motion.div>
+
+        {(user?.selectedProgram || user?.selectedAmount) && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="mb-8 rounded-xl border border-green-300/40 bg-green-500/10 p-5"
+          >
+            <h2 className="text-lg font-semibold text-green-300 mb-2">Purchased Plan</h2>
+            <p className="text-green-200">
+              {user.selectedProgram ? user.selectedProgram : "Selected Program"}
+              {formattedSelectedAmount ? ` - ${formattedSelectedAmount}` : ""}
+            </p>
+          </motion.div>
+        )}
 
         {/* Dashboard Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">

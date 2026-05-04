@@ -1,14 +1,12 @@
 'use client';
 
-import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import WelcomePopup from '@/components/WelcomePopup';
-import JugglerMascot from '@/components/JugglerMascot';
 import AnimatedBackground from '@/components/AnimatedBackground';
-import { usePathname } from 'next/navigation';
+import CookieConsent from '@/components/CookieConsent';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -17,28 +15,46 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const pathname = usePathname();
-  const isHiringPage = pathname === '/hiring' || pathname?.startsWith('/hiring/');
-  const isCompanyPage = pathname === '/company' || pathname?.startsWith('/company/');
-  const isAboutPage = pathname === '/about' || pathname?.startsWith('/about/');
-  const isCampusAmbassadorPage = pathname === '/campus-ambassador' || pathname?.startsWith('/campus-ambassador/');
-
-  const isGalleryPage = pathname === '/gallery' || pathname?.startsWith('/gallery/');
-
   return (
     <html lang="en">
-      <body className={`${inter.className} min-h-screen flex flex-col`}>
-        {/* ── Zero-G animated background — behind everything ── */}
-        <AnimatedBackground />
+      <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, viewport-fit=cover" />
+        <meta name="theme-color" content="#14162a" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 
-        {!isHiringPage && !isCompanyPage && !isAboutPage && !isCampusAmbassadorPage && !isGalleryPage && <Navbar />}
-        <main className="flex-grow">{children}</main>
-        {!isHiringPage && !isCompanyPage && !isAboutPage && !isCampusAmbassadorPage && !isGalleryPage && <Footer />}
-        {!isHiringPage && !isCompanyPage && !isAboutPage && !isCampusAmbassadorPage && !isGalleryPage && <WelcomePopup />}
-        {/* ── Juggler Mascot: fixed overlay across all pages ── */}
-        <JugglerMascot />
+        {/* SEO */}
+        <title>Adyapan — Learn, Earn & Get Placed</title>
+        <meta name="description" content="Adyapan offers industry-relevant courses, real internship experience, and placement support to help students launch their careers." />
+        <meta name="keywords" content="online courses, internship, placement, skills, adyapan, edutech, india" />
+        <meta name="author" content="Adyapan Edutech Pvt. Ltd." />
+        <meta name="robots" content="index, follow" />
+
+        {/* Open Graph */}
+        <meta property="og:type" content="website" />
+        <meta property="og:title" content="Adyapan — Learn, Earn & Get Placed" />
+        <meta property="og:description" content="Industry-relevant courses with real internship experience and placement support." />
+        <meta property="og:image" content="/images/adyapan-logo-bg.png" />
+        <meta property="og:url" content={process.env.NEXT_PUBLIC_APP_URL || 'https://adyapan.com'} />
+        <meta property="og:site_name" content="Adyapan" />
+
+        {/* Twitter Card */}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Adyapan — Learn, Earn & Get Placed" />
+        <meta name="twitter:description" content="Industry-relevant courses with real internship experience and placement support." />
+        <meta name="twitter:image" content="/images/adyapan-logo-bg.png" />
+
+        {/* Canonical */}
+        <link rel="canonical" href={process.env.NEXT_PUBLIC_APP_URL || 'https://adyapan.com'} />
+      </head>
+      <body className={`${inter.className} min-h-screen flex flex-col overflow-x-hidden`}>
+        <AnimatedBackground />
+        <Navbar />
+        <main className="flex-grow w-full">{children}</main>
+        <Footer />
+        <WelcomePopup />
+        <CookieConsent />
       </body>
     </html>
   );
 }
-

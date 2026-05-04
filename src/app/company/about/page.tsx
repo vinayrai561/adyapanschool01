@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 import { Award, Users, Zap, Target, Heart, Globe, BookOpen, TrendingUp } from 'lucide-react';
+import AuthNavButtons from '@/components/AuthNavButtons';
 
 const customEase = [0.22, 1, 0.36, 1] as const;
 
@@ -86,30 +87,6 @@ export default function CompanyAboutPage() {
 
   return (
     <div className="min-h-screen bg-[#0f1419]">
-      {/* Navbar */}
-      <nav className="sticky top-0 z-50 bg-[#1a202c] border-b border-gray-800">
-        <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-          <Link href="/company">
-            <img src="/images/adyapan-logo-bg.png" alt="Adyapan" className="h-10 w-auto" />
-          </Link>
-          <div className="hidden md:flex items-center gap-8 text-sm font-medium">
-            {[['/company', 'Home'], ['/company/about', 'About Us'], ['/company/gallery', 'Our Gallery'], ['/company/hire-talent', 'Hire Talent']].map(([h, l]) => (
-              <Link key={l} href={h} className={`transition-colors ${l === 'About Us' ? 'text-[#ffa800]' : 'text-white hover:text-gray-300'}`}>
-                {l}
-              </Link>
-            ))}
-          </div>
-          <div className="flex items-center gap-6">
-            <Link href="/auth?type=organization" className="text-sm font-medium text-white hover:text-gray-300 transition-colors">
-              Login
-            </Link>
-            <Link href="/auth?type=organization" className="px-6 py-2 bg-[#ffa800] text-white rounded-full text-sm font-semibold hover:bg-[#e69500] transition-colors">
-              Sign Up
-            </Link>
-          </div>
-        </div>
-      </nav>
-
       {/* Hero Section */}
       <section ref={sectionRef} className="relative min-h-[60vh] flex items-center overflow-hidden bg-gradient-to-br from-[#1a2a4e] via-[#0f1419] to-[#0f1419]">
         <div className="absolute inset-0" style={{ zIndex: 0 }}>
@@ -707,6 +684,7 @@ export default function CompanyAboutPage() {
           </div>
           <div className="border-t border-gray-800 pt-8 text-center text-gray-500 text-sm">
             <p>&copy; 2024 Adyapan. All rights reserved.</p>
+            <p className="text-gray-600 text-xs mt-1">Developed by <span className="text-[#ffa800] font-semibold">Rupesh</span> ✦ with ❤️</p>
           </div>
         </div>
       </footer>

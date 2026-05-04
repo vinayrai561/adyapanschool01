@@ -7,6 +7,7 @@ import {
   Code, Database, Smartphone, Palette, TrendingUp, Users, 
   Brain, Cpu, Globe, BarChart, Briefcase, BookOpen, ChevronRight
 } from 'lucide-react';
+import AuthNavButtons from '@/components/AuthNavButtons';
 
 const customEase = [0.22, 1, 0.36, 1] as const;
 
@@ -462,56 +463,6 @@ export default function HireTalentPage() {
 
   return (
     <div className="min-h-screen bg-[#0f1419]">
-      {/* Navbar */}
-      <motion.nav
-        initial={{ y: -60, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.5, ease: customEase }}
-        className="sticky top-0 z-50 bg-[#0f1419]/95 backdrop-blur-md border-b border-gray-800"
-      >
-        <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-          {/* Logo */}
-          <Link href="/company" className="flex items-center space-x-2.5">
-            <img
-              src="/images/adyapan-logo-bg.png"
-              alt="Adyapan Logo"
-              className="h-10 w-auto"
-            />
-          </Link>
-
-          {/* Nav Links */}
-          <div className="hidden md:flex items-center space-x-8">
-            <Link href="/company" className="text-gray-300 hover:text-white text-sm font-medium transition-colors">
-              Home
-            </Link>
-            <Link href="/company/about" className="text-gray-300 hover:text-white text-sm font-medium transition-colors">
-              About Us
-            </Link>
-            <Link href="/company/hire-talent" className="text-[#ffa800] font-medium text-sm">
-              Hire Talent
-            </Link>
-            <Link href="#" className="text-gray-300 hover:text-white text-sm font-medium transition-colors">
-              Programs
-            </Link>
-          </div>
-
-          {/* Actions */}
-          <div className="flex items-center space-x-4">
-            <Link href="/auth?type=organization" className="text-gray-300 hover:text-white text-sm font-medium transition-colors">
-              Login
-            </Link>
-            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-              <Link
-                href="/auth?type=organization"
-                className="px-5 py-2 bg-[#ffa800] text-white rounded-full text-sm font-semibold hover:bg-[#e69500] transition-colors"
-              >
-                Sign Up
-              </Link>
-            </motion.div>
-          </div>
-        </div>
-      </motion.nav>
-
       {/* Hero Section */}
       <section className="relative py-20 px-6 bg-gradient-to-br from-[#1a2a4e] via-[#0f1419] to-[#0f1419]">
         <div className="max-w-7xl mx-auto">
@@ -716,7 +667,7 @@ export default function HireTalentPage() {
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                 <Link
-                  href="/auth?type=organization"
+                  href="/company/hire-talent"
                   className="inline-flex items-center px-8 py-4 bg-[#ffa800] text-white rounded-lg font-bold text-lg hover:bg-[#e69500] transition-colors"
                 >
                   Start Hiring Now
