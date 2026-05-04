@@ -1,0 +1,214 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String?
+  passwordHash  String
+  role          UserRole  @default(STUDENT)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  // Student-specific fields
+  studentProfile StudentProfile?
+  skills         SkillAssessment[]
+  credentials    Credential[]
+  completedTasks TaskCompletion[]
+  applications   TaskApplication[]
+  
+  // Company-specific fields
+  companyProfile CompanyProfile?
+  postedTasks    Task[]
+  
+  @@map("users")
+}
+
+enum UserRole {
+  STUDENT
+  COMPANY
+  ADMIN
+}
+
+model StudentProfile {
+  id          String   @id @default(cuid())
+  userId      String   @unique
+  user        User     @relation(fields: [userId], references: [id])
+  bio         String?
+  location    String?
+  education   Json?    // Array of education objects
+  experience  Json?    // Array of experience objects
+  careerGoals String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@map("student_profiles")
+}
+
+model CompanyProfile {
+  id          String   @id @default(cuid())
+  userId      String   @unique
+  user        User     @relation(fields: [userId], references: [id])
+  companyName String
+  industry    String?
+  size        String?
+  website     String?
+  description String?
+  logoUrl     String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@map("company_profiles")
+}
+
+model Skill {
+  id          String   @id @default(cuid())
+  name        String
+  category    String
+  escoCode    String?  // ESCO framework code
+  description String?
+  createdAt   DateTime @default(now())
+  
+  assessments SkillAssessment[]
+  laborMarketData LaborMarketData?
+  
+  @@map("skills")
+}
+
+model SkillAssessment {
+  id          String   @id @default(cuid())
+  userId      String
+  skillId     String
+  user        User     @relation(fields: [userId], references: [id])
+  skill       Skill    @relation(fields: [skillId], references: [id])
+  score       Int      // 0-100
+  proficiency ProficiencyLevel
+  assessedAt  DateTime @default(now())
+  
+  @@unique([userId, skillId])
+  @@map("skill_assessments")
+}
+
+enum ProficiencyLevel {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+  EXPERT
+}
+
+model Credential {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  type        CredentialType
+  title       String
+  issuer      String   @default("Adyapan")
+  description String?
+  skills      String[] // Array of skill IDs
+  blockchainTxHash String? // For blockchain verification
+  issuedAt    DateTime @default(now())
+  expiresAt   DateTime?
+  
+  @@map("credentials")
+}
+
+enum CredentialType {
+  COURSE_COMPLETION
+  PROJECT_COMPLETION
+  SKILL_ASSESSMENT
+  MICRO_CREDENTIAL
+  BADGE
+}
+
+model Task {
+  id          String   @id @default(cuid())
+  companyId   String
+  company     User     @relation(fields: [companyId], references: [id])
+  title       String
+  description String
+  category    String
+  skills      String[] // Required skill IDs
+  budget      Decimal? // In INR
+  duration    Int      // In days
+  status      TaskStatus @default(OPEN)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  applications TaskApplication[]
+  completions  TaskCompletion[]
+  
+  @@map("tasks")
+}
+
+enum TaskStatus {
+  OPEN
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+model TaskApplication {
+  id          String   @id @default(cuid())
+  taskId      String
+  studentId   String
+  task        Task     @relation(fields: [taskId], references: [id])
+  student     User     @relation(fields: [studentId], references: [id])
+  coverLetter String?
+  status      ApplicationStatus @default(PENDING)
+  appliedAt   DateTime @default(now())
+  
+  @@unique([taskId, studentId])
+  @@map("task_applications")
+}
+
+enum ApplicationStatus {
+  PENDING
+  REVIEWED
+  ACCEPTED
+  REJECTED
+}
+
+model TaskCompletion {
+  id          String   @id @default(cuid())
+  taskId      String
+  studentId   String
+  task        Task     @relation(fields: [taskId], references: [id])
+  student     User     @relation(fields: [studentId], references: [id])
+  submission  Json     // Project submission details
+  rating      Int?     // Company rating of student (1-5)
+  feedback    String?
+  completedAt DateTime @default(now())
+  
+  @@unique([taskId, studentId])
+  @@map("task_completions")
+}
+
+model CareerPathway {
+  id          String   @id @default(cuid())
+  title       String
+  description String
+  industry    String
+  skills      String[] // Required skill IDs in order
+  createdAt   DateTime @default(now())
+  
+  @@map("career_pathways")
+}
+
+model LaborMarketData {
+  id          String   @id @default(cuid())
+  skillId     String
+  skill       Skill    @relation(fields: [skillId], references: [id])
+  demandScore Float    // 0-1
+  avgSalary   Decimal?
+  jobCount    Int?
+  updatedAt   DateTime @default(now())
+  
+  @@unique([skillId])
+  @@map("labor_market_data")
+}
