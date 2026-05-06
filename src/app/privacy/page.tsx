@@ -101,7 +101,11 @@ export default function PrivacyPolicy() {
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mb-10">
           <Link href="/" className="text-sm text-orange-500 hover:underline mb-4 inline-block">← Back to Home</Link>
           <div className="flex items-center gap-3 mb-3">
-            <span className="text-3xl">🔒</span>
+            <div className="w-10 h-10 rounded-xl bg-orange-100 border-2 border-orange-200 flex items-center justify-center flex-shrink-0">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#f97316" strokeWidth="2" className="w-6 h-6">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+              </svg>
+            </div>
             <h1 className="text-3xl font-extrabold text-gray-900">Privacy Policy</h1>
           </div>
           <p className="text-gray-500 text-sm">Last updated: May 2026 · Effective: May 1, 2026</p>

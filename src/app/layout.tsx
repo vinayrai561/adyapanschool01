@@ -7,6 +7,8 @@ import Footer from '@/components/Footer';
 import WelcomePopup from '@/components/WelcomePopup';
 import AnimatedBackground from '@/components/AnimatedBackground';
 import CookieConsent from '@/components/CookieConsent';
+import Mascot from '@/components/Mascot';
+import WhatsAppButton from '@/components/WhatappButton';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -34,7 +36,7 @@ export default function RootLayout({
         <meta property="og:type" content="website" />
         <meta property="og:title" content="Adyapan — Learn, Earn & Get Placed" />
         <meta property="og:description" content="Industry-relevant courses with real internship experience and placement support." />
-        <meta property="og:image" content="/images/adyapan-logo-bg.png" />
+        <meta property="og:image" content="/adyapan-logo.png" />
         <meta property="og:url" content={process.env.NEXT_PUBLIC_APP_URL || 'https://adyapan.com'} />
         <meta property="og:site_name" content="Adyapan" />
 
@@ -42,7 +44,7 @@ export default function RootLayout({
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content="Adyapan — Learn, Earn & Get Placed" />
         <meta name="twitter:description" content="Industry-relevant courses with real internship experience and placement support." />
-        <meta name="twitter:image" content="/images/adyapan-logo-bg.png" />
+        <meta name="twitter:image" content="/adyapan-logo.png" />
 
         {/* Canonical */}
         <link rel="canonical" href={process.env.NEXT_PUBLIC_APP_URL || 'https://adyapan.com'} />
@@ -54,6 +56,8 @@ export default function RootLayout({
         <Footer />
         <WelcomePopup />
         <CookieConsent />
+        <Mascot />
+        <WhatsAppButton />
       </body>
     </html>
   );

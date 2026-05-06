@@ -167,7 +167,7 @@ function SignupContent() {
             {/* Logo + heading */}
             <div className="text-center mb-6">
               <Link href="/" className="inline-block mb-4">
-                <img src="/images/adyapan-logo-bg.png" alt="Adyapan" className="h-10 w-auto mx-auto hover:scale-105 transition-transform" />
+                <img src="/adyapan-logo.png" alt="Adyapan" className="h-10 w-auto mx-auto hover:scale-105 transition-transform" />
               </Link>
               <h1 className="text-2xl font-extrabold text-gray-900">Create your account ✨</h1>
               <p className="text-gray-500 text-sm mt-1">Join 10,000+ learners and companies</p>

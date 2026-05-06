@@ -10,6 +10,7 @@ import AuthUser from '@/models/AuthUser';
 import Enrollment from '@/models/Enrollment';
 import Progress from '@/models/Progress';
 import Course from '@/models/Course';
+import Certificate from '@/models/Certificate';
 import { COURSE_CATALOGUE, withTotalLessons } from '@/lib/courseData';
 
 export async function GET(req: NextRequest) {
@@ -65,6 +66,29 @@ export async function GET(req: NextRequest) {
           });
         }
 
+        const progressPercent = (progress as any).progressPercent ?? 0;
+        const isComplete = progressPercent === 100;
+
+        /* Get certificate if course is complete */
+        let certificateData = null;
+        if (isComplete) {
+          const cert = await Certificate.findOne({
+            userId: decoded.userId,
+            courseSlug: enr.courseSlug,
+          }).lean();
+
+          if (cert) {
+            certificateData = {
+              certificateId: (cert as any).certificateId,
+              studentName:   (cert as any).studentName,
+              courseName:    (cert as any).courseName,
+              issuedAt:      (cert as any).issuedAt,
+              status:        (cert as any).status,
+              downloadUrl:   `/api/certificates/${enr.courseSlug}/download`,
+            };
+          }
+        }
+
         return {
           enrollment: {
             id:         enr._id.toString(),
@@ -89,12 +113,14 @@ export async function GET(req: NextRequest) {
             : null,
           progress: {
             completedLessons: (progress as any).completedLessons ?? [],
-            progressPercent:  (progress as any).progressPercent ?? 0,
+            progressPercent,
             totalLessons:     (progress as any).totalLessons ?? 0,
             lastLessonId:     (progress as any).lastLessonId ?? '',
             lastModuleId:     (progress as any).lastModuleId ?? '',
             completedAt:      (progress as any).completedAt ?? null,
+            isComplete,
           },
+          certificate: certificateData,
         };
       })
     );

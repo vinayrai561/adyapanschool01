@@ -63,7 +63,11 @@ export default function ContactPage() {
 
               {status === 'sent' ? (
                 <div className="text-center py-10">
-                  <div className="text-5xl mb-4">✅</div>
+                  <div className="w-16 h-16 rounded-full bg-green-100 border-2 border-green-300 flex items-center justify-center mx-auto mb-4">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="2.5" className="w-8 h-8">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                    </svg>
+                  </div>
                   <h3 className="text-lg font-bold text-gray-900 mb-2">Message Sent!</h3>
                   <p className="text-gray-500 text-sm">We'll get back to you within 24 hours.</p>
                   <button onClick={() => setStatus('idle')} className="mt-4 text-orange-500 text-sm hover:underline">Send another message</button>

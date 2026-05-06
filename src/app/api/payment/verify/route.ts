@@ -31,11 +31,13 @@ import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
 import { connectToDatabase } from '@/lib/mongodb';
 import { sendPaymentNotifications } from '@/lib/notifications';
+import { sendPaymentSuccessEmail } from '@/lib/email';
 import Payment from '@/models/Payment';
 import Enrollment from '@/models/Enrollment';
 import Progress from '@/models/Progress';
 import Course from '@/models/Course';
 import AuthUser from '@/models/AuthUser';
+import EmailLog from '@/models/EmailLog';
 import { COURSE_CATALOGUE, withTotalLessons } from '@/lib/courseData';
 
 const GST_RATE = 0.18;
@@ -243,19 +245,67 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Send email and SMS notifications
+    // Send email notifications (SendGrid + fallback Gmail)
     if (userEmail && userName) {
-      sendPaymentNotifications({
-        name: userName,
-        email: userEmail,
-        phone: userPhone,
-        planName: courseName,
-        planLabel: planLabel || '',
-        amount: total,
-        paymentId: razorpay_payment_id,
-        orderId: razorpay_order_id,
-        testMode,
-      }).catch((err) => console.error('[Notify] Error:', err));
+      // Prevent duplicate emails
+      const alreadySent = await EmailLog.findOne({ paymentId: razorpay_payment_id, type: 'payment_success', status: 'sent' });
+
+      if (!alreadySent) {
+        let emailStatus: 'sent' | 'failed' = 'failed';
+        let errorMessage = '';
+
+        try {
+          // Try SendGrid first
+          const sent = await sendPaymentSuccessEmail({
+            name: userName,
+            email: userEmail,
+            courseName,
+            courseSlug,
+            planLabel: planLabel || '',
+            amount: total,
+            paymentId: razorpay_payment_id,
+            orderId: razorpay_order_id,
+          });
+
+          if (sent) {
+            emailStatus = 'sent';
+          } else {
+            // Fallback to Gmail/Nodemailer
+            await sendPaymentNotifications({
+              name: userName,
+              email: userEmail,
+              phone: userPhone,
+              planName: courseName,
+              planLabel: planLabel || '',
+              amount: total,
+              paymentId: razorpay_payment_id,
+              orderId: razorpay_order_id,
+              testMode,
+            });
+            emailStatus = 'sent';
+          }
+        } catch (e: any) {
+          errorMessage = e?.message || 'Unknown error';
+          console.error('[Email] Error:', errorMessage);
+        }
+
+        // Log email attempt
+        await EmailLog.create({
+          userId,
+          email: userEmail,
+          type: 'payment_success',
+          status: emailStatus,
+          paymentId: razorpay_payment_id,
+          orderId: razorpay_order_id,
+          courseName,
+          amount: total,
+          errorMessage,
+        }).catch(e => console.warn('[EmailLog] Save error:', e?.message));
+
+        console.log(`[Email] Status: ${emailStatus} | To: ${userEmail}`);
+      } else {
+        console.log(`[Email] Already sent for ${razorpay_payment_id} — skipping`);
+      }
     }
 
     return NextResponse.json({

@@ -305,7 +305,7 @@ function AuthPageContent() {
         >
           {/* Logo */}
           <Link href="/" className="inline-flex items-center gap-2 mb-8 group">
-            <img src="/images/adyapan-logo-bg.png" alt="Adyapan" className="h-9 w-auto group-hover:scale-105 transition-transform" />
+            <img src="/adyapan-logo.png" alt="Adyapan" className="h-9 w-auto group-hover:scale-105 transition-transform" />
           </Link>
 
           {/* Mode toggle pill */}

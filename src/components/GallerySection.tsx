@@ -137,7 +137,7 @@ export default function GallerySection({ theme = 'light' }: GallerySectionProps)
         />
       </div>
 
-      <div className="max-w-7xl mx-auto px-6 relative z-10">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 relative z-10">
         {/* Section Header */}
         <motion.div
           initial={{ opacity: 0, y: 40 }}
@@ -229,7 +229,7 @@ export default function GallerySection({ theme = 'light' }: GallerySectionProps)
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
             transition={{ duration: 0.5, ease: customEase }}
-            className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 auto-rows-[200px] gap-4"
+            className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 auto-rows-[140px] sm:auto-rows-[170px] md:auto-rows-[200px] gap-3 sm:gap-4"
           >
             {filtered.map((img, i) => (
               <motion.div
@@ -367,7 +367,7 @@ export default function GallerySection({ theme = 'light' }: GallerySectionProps)
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.9, y: -20 }}
                 transition={{ duration: 0.35, ease: customEase }}
-                className="max-w-5xl max-h-[85vh] mx-6 relative"
+                className="w-full max-w-[95vw] sm:max-w-5xl max-h-[85vh] mx-3 sm:mx-6 relative"
                 onClick={(e) => e.stopPropagation()}
               >
                 <img

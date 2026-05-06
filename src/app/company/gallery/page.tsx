@@ -234,45 +234,6 @@ export default function GalleryPage() {
         </div>
       </section>
 
-      {/* ── FOOTER ── */}
-      <footer className="bg-black border-t border-gray-800 py-14">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="grid grid-cols-4 gap-10 mb-10">
-            {/* Logo col */}
-            <div>
-              <img src="/images/adyapan-logo-bg.png" alt="Adyapan" className="h-10 w-auto mb-3" />
-              <p className="text-gray-600 text-xs leading-relaxed">© 2024 Adyapan Inc.</p>
-              <p className="text-gray-600 text-xs mt-1">Developed by <span className="text-[#ffa800] font-semibold">Rupesh</span></p>
-            </div>
-            {/* Quick Links */}
-            <div>
-              <p className="text-white font-bold text-sm mb-4">Quick Links</p>
-              {['Home', 'About Us', 'Gallery', 'Hire Talent', 'Admissions'].map(l => (
-                <p key={l} className="text-gray-500 text-xs mb-2 hover:text-[#ffa800] cursor-pointer transition-colors">{l}</p>
-              ))}
-            </div>
-            {/* Standard Links */}
-            <div>
-              <p className="text-white font-bold text-sm mb-4">Standard Links</p>
-              {['Terms & Conditions', 'Privacy Policy', 'Community Guidelines'].map(l => (
-                <p key={l} className="text-gray-500 text-xs mb-2 hover:text-white cursor-pointer transition-colors">{l}</p>
-              ))}
-            </div>
-            {/* Social */}
-            <div>
-              <p className="text-white font-bold text-sm mb-4">Social Media</p>
-              {['Instagram', 'X (Twitter)', 'Discord'].map(l => (
-                <p key={l} className="text-gray-500 text-xs mb-2 hover:text-[#ffa800] cursor-pointer transition-colors">{l}</p>
-              ))}
-            </div>
-          </div>
-          <div className="border-t border-gray-800 pt-6 text-center">
-            <p className="text-gray-700 text-xs">© 2024 Adyapan Inc. All rights reserved.</p>
-            <p className="text-gray-500 text-xs mt-1">Developed by <span className="text-[#ffa800] font-semibold">Rupesh</span> ✦ with ❤️</p>
-          </div>
-        </div>
-      </footer>
-
       {/* ── LIGHTBOX ── */}
       <AnimatePresence>
         {lb !== null && <Lightbox images={MOMENTS} idx={lb} onClose={closeLb} onPrev={prev} onNext={next} />}

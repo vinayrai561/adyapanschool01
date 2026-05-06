@@ -159,12 +159,12 @@ const Navbar = () => {
         WebkitBackdropFilter: 'blur(18px) saturate(1.5)',
       }}
     >
-      <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-2">
 
         {/* Logo */}
         <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.97 }}>
           <Link href="/" className="flex items-center space-x-2.5">
-            <img src="/images/adyapan-logo-bg.png" alt="Adyapan Logo" className="h-10 w-auto" />
+            <img src="/adyapan-logo.png" alt="Adyapan" className="h-10 w-auto" />
           </Link>
         </motion.div>
 
@@ -187,11 +187,11 @@ const Navbar = () => {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
                 transition={{ duration: 0.2 }}
-                className="absolute top-full left-0 mt-2 bg-white rounded-2xl shadow-2xl p-6 w-[1000px] z-50"
+                className="absolute top-full left-0 mt-2 bg-white rounded-2xl shadow-2xl p-4 sm:p-6 w-[95vw] sm:w-[600px] lg:w-[1000px] max-w-[1000px] z-50"
               >
-                <div className="grid grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                   {/* Categories */}
-                  <div className="col-span-1 border-r border-gray-200 pr-4 max-h-[500px] overflow-y-auto">
+                  <div className="col-span-1 border-b sm:border-b-0 sm:border-r border-gray-200 pb-3 sm:pb-0 sm:pr-4 max-h-[240px] sm:max-h-[500px] overflow-y-auto">
                     <div className="space-y-2">
                       {categories.map((cat, i) => (
                         <motion.button
@@ -215,8 +215,8 @@ const Navbar = () => {
                   </div>
 
                   {/* Courses grid */}
-                  <div className="col-span-2 max-h-[500px] overflow-y-auto">
-                    <div className="grid grid-cols-2 gap-4">
+                  <div className="sm:col-span-1 lg:col-span-2 max-h-[300px] sm:max-h-[500px] overflow-y-auto">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                       {(coursesByCategory[selectedCategory] || []).map((course, i) => {
                         const slug = course.name.toLowerCase()
                           .replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-').trim();

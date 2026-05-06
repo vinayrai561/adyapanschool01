@@ -1,326 +1,392 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
-import MorphText from './MorphText';
+
+const WORDS = ['Sell', 'Launch', 'Brand', 'Grow', 'Build'];
+
+const POPULAR = [
+  'Artificial Intelligence', 'Data Science', 'Web Development',
+  'Digital Marketing', 'Python Full Stack', 'UI/UX Design',
+];
 
 const cards = [
   {
-    img: 'https://images.unsplash.com/photo-1450101499163-c8848c66ca85?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+    img: 'https://images.unsplash.com/photo-1450101499163-c8848c66ca85?q=80&w=800&auto=format&fit=crop',
     label: 'Skills Assessment',
-    stat: '',
-    statLabel: 'industrial skill development',
+    sub: 'Industrial Skill Development',
     tag: 'Skills',
   },
   {
-    img: 'https://images.unsplash.com/photo-1459180129673-eefb56f79b45?q=80&w=1173&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-    label: 'Industry relevant project',
-    stat: '',
-    statLabel: 'minor & major projects',
+    img: 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?q=80&w=800&auto=format&fit=crop',
+    label: 'Career',
+    sub: 'Minor & Major Projects',
     tag: 'Career',
   },
   {
-    img: 'https://images.unsplash.com/photo-1542744173-8e7e53415bb0?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+    img: 'https://images.unsplash.com/photo-1542744173-8e7e53415bb0?q=80&w=800&auto=format&fit=crop',
     label: 'Placement',
-    stat: '100%',
-    statLabel: 'PLACED',
+    sub: '100% Placed',
     tag: 'Placement',
   },
 ];
 
-const customEase = [0.22, 1, 0.36, 1] as const;
+const ALL_COURSES = [
+  'Artificial Intelligence','Machine Learning','Data Science','Web Development',
+  'App Development','Python Full Stack','Java Full Stack','DevOps Engineering',
+  'Cloud Computing','AWS','Cyber Security','UI/UX Design','Graphic Design',
+  'Finance','Investment Banking','Digital Marketing','Social Media Marketing',
+  'HRM','Supply Chain Management','Embedded Systems','IoT & Robotics',
+  'AutoCAD','CATIA','Bioinformatics','Medical Coding','Construction Planning',
+];
 
-const textVariants = {
-  hidden: { opacity: 0, y: 30 },
-  show: (d: number) => ({
-    opacity: 1, y: 0,
-    transition: { delay: d, duration: 0.7, ease: customEase },
-  }),
-};
+const HISTORY_KEY = 'adyapan_search_history';
+const ease = [0.22, 1, 0.36, 1] as const;
 
 export default function HeroSection() {
-  const [active, setActive] = useState(0);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [showSuggestions, setShowSuggestions] = useState(false);
-  const router = useRouter();
+  const [wordIdx,  setWordIdx]  = useState(0);
+  const [active,   setActive]   = useState(0);
+  const [query,    setQuery]    = useState('');
+  const [showDrop, setShowDrop] = useState(false);
+  const [history,  setHistory]  = useState<string[]>([]);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const router   = useRouter();
 
-  // All programs from navbar
-  const allCourses = [
-    // CSE / IT DOMAINS
-    'Artificial Intelligence', 'AI Engineering', 'Generative AI', 'Machine Learning',
-    'Data Science', 'Data Engineering', 'Data Analytics', 'Database Management (DBMS)',
-    'Data Structures & Algorithms', 'Web Development', 'Web 3.0', 'App Development',
-    'Python Full Stack', 'Python programming curriculum', 'Java Programming', 'Java Full Stack',
-    'Selenium Testing with Java', 'DevOps Engineering', 'Cloud Computing', 'AWS',
-    'Cyber Security', 'Blockchain & Bitcoin', 'AR/VR Development', 'UI/UX Design',
-    'Graphic Design', 'VFX',
-    // MANAGEMENT & COMMERCE
-    'Finance', 'Investment Banking', 'Business Analytics', 'Marketing Management',
-    'Digital Marketing & Growth Strategy', 'Social Media Marketing', 'HRM', 'Management Consultancy',
-    'Supply Chain Management', 'SAP FICA', 'Salesforce', 'Stock Marketing',
-    'ACCA F4 (Business & Corporate Law)', 'Chartered Accountancy / CFA', 'Spoken English & Communication',
-    // ECE DOMAINS
-    'Embedded Systems', 'Hybrid & Electric Vehicle', 'VLSI', 'IoT & Robotics', 'Power Systems',
-    // ECONOMICS
-    'Business & Financial Economics', 'Investment Analysis', 'Data Analysis for Economics', 'Financial Economics',
-    // MECHANICAL ENGINEERING
-    'AutoCAD', 'CATIA', 'Car Design', 'Quality & Safety Professionals',
-    // BIO & LIFE SCIENCES
-    'Bioinformatics', 'Microbiology', 'Molecular Biology', 'Genetic Engineering',
-    'Pharmacovigilance', 'Nano Technology', 'Food Science & Technology', 'Nutrition & Health Management',
-    'Sensory Science', 'Medical Coding',
-    // CIVIL ENGINEERING
-    'Construction Planning',
-  ];
+  /* rotate words */
+  useEffect(() => {
+    const t = setInterval(() => setWordIdx(i => (i + 1) % WORDS.length), 2200);
+    return () => clearInterval(t);
+  }, []);
 
-  // Filter courses based on search query
-  const filteredCourses = searchQuery.trim()
-    ? allCourses.filter(course =>
-        course.toLowerCase().includes(searchQuery.toLowerCase())
-      ).slice(0, 8)
+  /* load search history from localStorage */
+  useEffect(() => {
+    try {
+      const h = JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]');
+      setHistory(Array.isArray(h) ? h.slice(0, 6) : []);
+    } catch { setHistory([]); }
+  }, []);
+
+  const saveToHistory = (term: string) => {
+    try {
+      const prev = JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]') as string[];
+      const next = [term, ...prev.filter(x => x !== term)].slice(0, 6);
+      localStorage.setItem(HISTORY_KEY, JSON.stringify(next));
+      setHistory(next);
+    } catch {}
+  };
+
+  const removeFromHistory = (term: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    try {
+      const next = history.filter(x => x !== term);
+      localStorage.setItem(HISTORY_KEY, JSON.stringify(next));
+      setHistory(next);
+    } catch {}
+  };
+
+  const slug = (s: string) =>
+    s.toLowerCase().replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-').trim();
+
+  const navigate = (term: string) => {
+    saveToHistory(term);
+    setShowDrop(false);
+    setQuery(term);
+    const match = ALL_COURSES.find(c => c.toLowerCase().includes(term.toLowerCase()));
+    router.push(`/courses/${slug(match || term)}`);
+  };
+
+  const go = () => { if (query.trim()) navigate(query.trim()); };
+
+  /* what to show in dropdown */
+  const isTyping    = query.trim().length > 0;
+  const suggestions = isTyping
+    ? ALL_COURSES.filter(c => c.toLowerCase().includes(query.toLowerCase())).slice(0, 7)
     : [];
-
-  // Function to convert course name to slug
-  const createSlug = (courseName: string) => {
-    return courseName.toLowerCase()
-      .replace(/[^a-z0-9\s-]/g, '') // Remove special characters
-      .replace(/\s+/g, '-') // Replace spaces with hyphens
-      .replace(/-+/g, '-') // Replace multiple hyphens with single
-      .trim();
-  };
-
-  const handleCourseSelect = (course: string) => {
-    setSearchQuery(course);
-    setShowSuggestions(false);
-    const slug = createSlug(course);
-    router.push(`/courses/${slug}`);
-  };
-
-  const handleGoClick = () => {
-    if (searchQuery.trim()) {
-      // Find exact match first
-      const exactMatch = allCourses.find(course => 
-        course.toLowerCase() === searchQuery.toLowerCase()
-      );
-      
-      if (exactMatch) {
-        const slug = createSlug(exactMatch);
-        router.push(`/courses/${slug}`);
-      } else {
-        // Find partial match
-        const partialMatch = allCourses.find(course =>
-          course.toLowerCase().includes(searchQuery.toLowerCase())
-        );
-        
-        if (partialMatch) {
-          const slug = createSlug(partialMatch);
-          router.push(`/courses/${slug}`);
-        } else {
-          // If no match found, create slug from search query
-          const slug = createSlug(searchQuery);
-          router.push(`/courses/${slug}`);
-        }
-      }
-    }
-  };
+  const showHistory  = !isTyping && history.length > 0;
+  const showPopular  = !isTyping && history.length === 0;
+  const dropVisible  = showDrop && (suggestions.length > 0 || showHistory || showPopular);
 
   return (
-    <section className="min-h-[88vh] flex items-center overflow-hidden relative">
-      {/* ── Background Video ── */}
-      <video
-        autoPlay
-        muted
-        loop
-        playsInline
-        style={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          width: '100%',
-          height: '100%',
-          objectFit: 'cover',
-          zIndex: -1,
-        }}
-      >
+    <section className="relative overflow-hidden" style={{ minHeight: '92vh' }}>
+
+      {/* ── Full background video ── */}
+      <video autoPlay muted loop playsInline
+        className="absolute inset-0 w-full h-full object-cover pointer-events-none"
+        style={{ zIndex: 0 }}>
         <source src="/videos/8126367-hd_1920_1080_25fps.mp4" type="video/mp4" />
       </video>
 
-      <div className="max-w-7xl mx-auto px-6 w-full grid grid-cols-1 lg:grid-cols-2 gap-10 items-center py-12 relative z-10">
+      {/* ── Dark overlay for text readability ── */}
+      <div className="absolute inset-0 pointer-events-none" style={{
+        zIndex: 1,
+        background: 'transparent(105deg, rgba(250, 239, 239, 0.72) 0%, rgba(253, 246, 246, 0.57) 55%, rgba(248, 245, 245, 0.72) 100%)',
+      }} />
 
-        {/* ── Left: Text ── */}
-        <div className="flex flex-col gap-6">
-          <motion.h1
-            custom={0.1} variants={textVariants} initial="hidden" animate="show"
-            className="text-6xl md:text-7xl font-extrabold text-white leading-[1.05] tracking-tight"
-          >
-            Don't Just<br />Learn.<br />
-            <motion.span
-              custom={0.35} variants={textVariants} initial="hidden" animate="show"
-              style={{ display: 'inline-block' }}
+      {/* ── Main content ── */}
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 w-full flex items-center"
+        style={{ zIndex: 2, minHeight: '92vh' }}>
+        <div className="w-full grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-10 items-center py-12 lg:py-16">
+
+          {/* ── LEFT ── */}
+          <div className="flex flex-col gap-6">
+
+            {/* Headline */}
+            <motion.h1
+              initial={{ opacity: 0, x: -60 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.8, ease }}
+              className="font-black leading-[1.0] tracking-tight text-white"
+              style={{ fontSize: 'clamp(52px, 7vw, 90px)' }}
             >
-              <MorphText />
-            </motion.span>
-            <br />Yourself.
-          </motion.h1>
+              Don't Just<br />Learn.<br />
+              <span className="relative inline-block" style={{ minWidth: 220 }}>
+                <AnimatePresence mode="wait">
+                  <motion.span
+                    key={wordIdx}
+                    initial={{ opacity: 0, y: 30, rotateX: -40 }}
+                    animate={{ opacity: 1, y: 0, rotateX: 0 }}
+                    exit={{ opacity: 0, y: -30, rotateX: 40 }}
+                    transition={{ duration: 0.42, ease }}
+                    style={{
+                      display: 'inline-block',
+                      color: '#f97316',
+                      textShadow: '0 4px 24px rgba(249,115,22,0.5)',
+                    }}
+                  >
+                    {WORDS[wordIdx]}
+                  </motion.span>
+                </AnimatePresence>
+              </span>
+              <br />Yourself.
+            </motion.h1>
 
-          <motion.div
-            custom={0.5} variants={textVariants} initial="hidden" animate="show"
-            className="flex items-stretch max-w-sm relative"
-          >
-            <input
-              type="text"
-              placeholder="Find your passion"
-              value={searchQuery}
-              autoComplete="off"
-              suppressHydrationWarning
-              onChange={(e) => {
-                setSearchQuery(e.target.value);
-                setShowSuggestions(e.target.value.length > 0);
-              }}
-              onFocus={() => searchQuery && setShowSuggestions(true)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  handleGoClick();
-                }
-              }}
-              className="flex-1 px-5 py-3.5 bg-white text-[#1a1a2e] text-sm rounded-l-xl border border-[#e0d8d0] focus:outline-none placeholder-gray-400 focus:ring-2 focus:ring-orange-300 transition-all"
-            />
-            <motion.button
-              whileHover={{ scale: 1.06 }} whileTap={{ scale: 0.94 }}
-              onClick={handleGoClick}
-              className="px-6 py-3.5 font-bold text-[#1a1a2e] rounded-r-xl text-sm"
-              style={{ background: '#f90' }}
+            {/* Search bar */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4, duration: 0.6, ease }}
+            className="relative w-full max-w-sm sm:max-w-md"
             >
-              Go
-            </motion.button>
-
-            {/* Suggestions Dropdown */}
-            <AnimatePresence>
-              {showSuggestions && filteredCourses.length > 0 && (
-                <motion.div
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  transition={{ duration: 0.2 }}
-                  className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-xl border border-[#e0d8d0] overflow-hidden z-50"
+              <div className="flex items-stretch rounded-2xl overflow-hidden shadow-2xl"
+                style={{ border: '2px solid rgba(255,255,255,0.25)' }}>
+                <input
+                  ref={inputRef}
+                  type="text"
+                  placeholder="Find your passion"
+                  value={query}
+                  autoComplete="off"
+                  suppressHydrationWarning
+                  onChange={e => {
+                    setQuery(e.target.value);
+                    setShowDrop(true);
+                  }}
+                  onFocus={() => setShowDrop(true)}
+                  onBlur={() => setTimeout(() => setShowDrop(false), 180)}
+                  onKeyDown={e => e.key === 'Enter' && go()}
+                  className="flex-1 px-5 py-4 text-sm text-gray-900 placeholder-gray-400 focus:outline-none"
+                  style={{ background: 'rgba(255,255,255,0.95)' }}
+                />
+                <motion.button
+                  whileHover={{ scale: 1.06 }} whileTap={{ scale: 0.94 }}
+                  onClick={go}
+                  className="px-7 py-4 font-black text-white text-sm"
+                  style={{ background: 'linear-gradient(135deg,#f97316,#ea580c)' }}
                 >
-                  {filteredCourses.map((course, i) => (
-                    <motion.button
-                      key={i}
-                      onClick={() => handleCourseSelect(course)}
-                      initial={{ opacity: 0, x: -10 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: i * 0.05 }}
-                      className="w-full text-left px-5 py-3 hover:bg-[#f90]/10 border-b border-gray-100 last:border-b-0 transition-colors group"
-                    >
-                      <div className="flex items-center gap-2">
-                        <span className="text-[#f90]">→</span>
-                        <span className="text-sm text-[#1a1a2e] group-hover:text-[#f90] font-medium">
-                          {course}
-                        </span>
-                      </div>
-                    </motion.button>
-                  ))}
+                  Go
+                </motion.button>
+              </div>
+
+              {/* ── Dropdown ── */}
+              <AnimatePresence>
+                {dropVisible && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -8, scale: 0.98 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: -8, scale: 0.98 }}
+                    transition={{ duration: 0.18 }}
+                    className="absolute top-full left-0 right-0 mt-2 rounded-2xl overflow-hidden shadow-2xl"
+                    style={{
+                      background: 'white',
+                      border: '1px solid rgba(0,0,0,0.08)',
+                      zIndex: 50,
+                    }}
+                  >
+                    {/* Search suggestions while typing */}
+                    {isTyping && suggestions.map((c, i) => (
+                      <button key={i}
+                        onMouseDown={() => navigate(c)}
+                        className="w-full text-left px-5 py-3 text-sm font-medium text-gray-800 hover:bg-orange-50 hover:text-orange-600 border-b border-gray-100 last:border-0 transition-colors flex items-center gap-2"
+                      >
+                        <svg className="w-3.5 h-3.5 text-orange-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                        {c}
+                      </button>
+                    ))}
+
+                    {/* Search history on first focus */}
+                    {showHistory && (
+                      <>
+                        <div className="px-5 pt-3 pb-1 flex items-center justify-between">
+                          <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Recent Searches</span>
+                          <button
+                            onMouseDown={() => {
+                              localStorage.removeItem(HISTORY_KEY);
+                              setHistory([]);
+                            }}
+                            className="text-[10px] text-orange-400 hover:text-orange-600 font-semibold"
+                          >
+                            Clear all
+                          </button>
+                        </div>
+                        {history.map((h, i) => (
+                          <button key={i}
+                            onMouseDown={() => navigate(h)}
+                            className="w-full text-left px-5 py-3 text-sm font-medium text-gray-700 hover:bg-orange-50 hover:text-orange-600 border-b border-gray-100 last:border-0 transition-colors flex items-center gap-2 group"
+                          >
+                            {/* Clock icon */}
+                            <svg className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <span className="flex-1">{h}</span>
+                            {/* Remove button */}
+                            <span
+                              onMouseDown={e => removeFromHistory(h, e)}
+                              className="opacity-0 group-hover:opacity-100 text-gray-300 hover:text-red-400 transition-all text-base leading-none px-1"
+                            >
+                              ×
+                            </span>
+                          </button>
+                        ))}
+                      </>
+                    )}
+
+                    {/* Popular courses on very first visit */}
+                    {showPopular && (
+                      <>
+                        <div className="px-5 pt-3 pb-1">
+                          <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Popular Courses</span>
+                        </div>
+                        {POPULAR.map((p, i) => (
+                          <button key={i}
+                            onMouseDown={() => navigate(p)}
+                            className="w-full text-left px-5 py-3 text-sm font-medium text-gray-700 hover:bg-orange-50 hover:text-orange-600 border-b border-gray-100 last:border-0 transition-colors flex items-center gap-2"
+                          >
+                            {/* Trending icon */}
+                            <svg className="w-3.5 h-3.5 text-orange-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                            </svg>
+                            {p}
+                          </button>
+                        ))}
+                      </>
+                    )}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </motion.div>
+
+            {/* Stats */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.6, duration: 0.6, ease }}
+              className="flex items-center gap-8 flex-wrap"
+            >
+              {[
+                { n: '10K+', l: 'Students' },
+                { n: '67+',  l: 'Programs' },
+                { n: '95%',  l: 'Placement' },
+              ].map(({ n, l }) => (
+                <div key={l} className="text-white">
+                  <div className="font-black text-2xl leading-none">{n}</div>
+                  <div className="text-white/70 text-xs font-semibold mt-0.5 uppercase tracking-wider">{l}</div>
+                </div>
+              ))}
+            </motion.div>
+          </div>
+
+          {/* ── RIGHT — expanding cards ── */}
+          <motion.div
+            className="hidden lg:flex gap-3 items-end"
+            style={{ height: 480 }}
+            initial={{ opacity: 0, x: 60 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.3, duration: 0.9, ease }}
+          >
+            {cards.map((card, i) => {
+              const isActive = i === active;
+              return (
+                <motion.div
+                  key={i}
+                  onClick={() => setActive(i)}
+                  onMouseEnter={() => setActive(i)}
+                  animate={{
+                    flex: isActive ? 2.5 : 0.65,
+                    height: isActive ? '100%' : '72%',
+                  }}
+                  transition={{ duration: 0.65, ease }}
+                  className="relative rounded-3xl overflow-hidden cursor-pointer flex-shrink-0"
+                  style={{
+                    minWidth: 0,
+                    boxShadow: isActive
+                      ? '0 28px 64px rgba(0,0,0,0.5), 0 0 0 3px rgba(249,115,22,0.7)'
+                      : '0 8px 24px rgba(0,0,0,0.35)',
+                  }}
+                  whileHover={!isActive ? { y: -8 } : {}}
+                >
+                  <motion.img
+                    src={card.img}
+                    alt={card.label}
+                    className="w-full h-full object-cover"
+                    animate={{ scale: isActive ? 1.07 : 1 }}
+                    transition={{ duration: 0.65, ease }}
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent" />
+
+                  <AnimatePresence>
+                    {isActive && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 16 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: 10 }}
+                        transition={{ duration: 0.35, ease }}
+                        className="absolute bottom-0 left-0 right-0 p-5"
+                      >
+                        <div className="text-white font-black text-lg leading-tight">{card.label}</div>
+                        <div className="text-white/60 text-xs uppercase tracking-widest mt-1">{card.sub}</div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+
+                  <AnimatePresence>
+                    {!isActive && (
+                      <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="absolute bottom-0 left-0 right-0 p-3 flex justify-center"
+                      >
+                        <div
+                          className="px-3 py-2 rounded-xl text-white font-bold text-xs"
+                          style={{
+                            background: 'rgba(0,0,0,0.65)',
+                            backdropFilter: 'blur(6px)',
+                            writingMode: 'vertical-rl',
+                            transform: 'rotate(180deg)',
+                          }}
+                        >
+                          {card.tag}
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </motion.div>
-              )}
-            </AnimatePresence>
+              );
+            })}
           </motion.div>
         </div>
-
-        {/* ── Right: Expanding card carousel ── */}
-        <motion.div
-          className="flex gap-3 items-end"
-          style={{ height: 500 }}
-          initial={{ opacity: 0, y: 60 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2, duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-        >
-          {cards.map((card, i) => {
-            const isActive = i === active;
-
-            return (
-              <motion.div
-                key={i}
-                onClick={() => setActive(i)}
-                onMouseEnter={() => setActive(i)}
-                animate={{
-                  flex: isActive ? 2.2 : 0.7,
-                  height: isActive ? '100%' : '75%',
-                }}
-                transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-                className="relative rounded-3xl overflow-hidden cursor-pointer flex-shrink-0"
-                style={{ minWidth: 0 }}
-                whileHover={!isActive ? { y: -6 } : {}}
-              >
-                {/* Image */}
-                <motion.img
-                  src={card.img}
-                  alt={card.label}
-                  className="w-full h-full object-cover object-top"
-                  animate={{ scale: isActive ? 1.04 : 1 }}
-                  transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-                />
-
-                {/* Gradient overlay */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
-
-                {/* Active card — bottom info row */}
-                <AnimatePresence>
-                  {isActive && (
-                    <motion.div
-                      key="info"
-                      initial={{ opacity: 0, y: 16 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: 10 }}
-                      transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-                      className="absolute bottom-0 left-0 right-0 p-5 flex justify-between items-end"
-                    >
-                      <div>
-                        <div className="text-white font-bold text-base leading-tight">
-                          {card.label.split(' ')[0]}
-                        </div>
-                        <div className="text-white font-bold text-base leading-tight">
-                          {card.label.split(' ').slice(1).join(' ')}
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <div className="text-white font-extrabold text-4xl leading-none">
-                          {card.stat}
-                        </div>
-                        <div className="text-white/60 text-[10px] uppercase tracking-widest mt-0.5">
-                          {card.statLabel}
-                        </div>
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-
-                {/* Inactive card — vertical tag */}
-                <AnimatePresence>
-                  {!isActive && (
-                    <motion.div
-                      key="tag"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      transition={{ duration: 0.3 }}
-                      className="absolute bottom-0 left-0 right-0 p-3 flex justify-center"
-                    >
-                      <div
-                        className="bg-[#1a1a2e]/80 backdrop-blur-sm px-3 py-2 rounded-lg"
-                        style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)' }}
-                      >
-                        <span className="text-white font-bold text-xs">{card.tag}</span>
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </motion.div>
-            );
-          })}
-        </motion.div>
-
       </div>
     </section>
   );

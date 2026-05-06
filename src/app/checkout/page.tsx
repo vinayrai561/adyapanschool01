@@ -394,7 +394,7 @@ export default function CheckoutPage() {
 
   /* ── MAIN RENDER ── */
   return (
-    <main className="min-h-screen px-4 py-8" style={{ background: 'linear-gradient(135deg, #fff7ed 0%, #fef3c7 50%, #fff 100%)' }}>
+    <main className="min-h-screen px-3 sm:px-4 py-6 sm:py-8" style={{ background: 'linear-gradient(135deg, #fff7ed 0%, #fef3c7 50%, #fff 100%)' }}>
       <div className="max-w-6xl mx-auto">
 
         {/* ── Page header ── */}
@@ -429,13 +429,13 @@ export default function CheckoutPage() {
         <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}
           className="mb-6 rounded-2xl overflow-hidden"
           style={{ background: 'linear-gradient(135deg, #f97316, #dc2626)' }}>
-          <div className="px-5 py-3 flex flex-wrap items-center justify-between gap-3">
-            <div className="flex flex-wrap items-center gap-4 text-white text-xs font-semibold">
+          <div className="px-4 sm:px-5 py-3 flex flex-wrap items-center justify-between gap-2 sm:gap-3">
+            <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-white text-xs font-semibold">
               <span>🔥 Only 12 Seats Left</span>
               <span className="hidden sm:block">•</span>
-              <span>👨‍🎓 20,000+ Students Joined</span>
+              <span className="hidden sm:inline">👨‍🎓 20,000+ Students Joined</span>
               <span className="hidden sm:block">•</span>
-              <span>⭐ 4.9 Rating</span>
+              <span className="hidden sm:inline">⭐ 4.9 Rating</span>
             </div>
             <div className="flex items-center gap-2 text-white text-xs font-bold">
               <span>⏰ Offer ends in:</span>
@@ -604,10 +604,10 @@ export default function CheckoutPage() {
                   <motion.form initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
                     onSubmit={handlePay} className="p-6">
 
-                    <div className="flex flex-col sm:flex-row gap-6">
+                    <div className="flex flex-col sm:flex-row gap-4 sm:gap-6">
                       {/* method sidebar */}
-                      <div className="sm:w-48 shrink-0 space-y-1">
-                        <p className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-2">Pay Now</p>
+                      <div className="flex flex-row sm:flex-col sm:w-48 shrink-0 gap-1 overflow-x-auto pb-1 sm:pb-0">
+                        <p className="hidden sm:block text-xs font-bold text-gray-400 uppercase tracking-wide mb-2">Pay Now</p>
                         {([
                           { id: 'upi',        label: 'UPI',          icon: '⚡' },
                           { id: 'card',       label: 'Credit / Debit Card', icon: '💳' },
@@ -637,7 +637,7 @@ export default function CheckoutPage() {
                                 <p className="font-semibold text-gray-800 text-sm">Select UPI App</p>
 
                                 {/* Suggested apps grid */}
-                                <div className="grid grid-cols-2 gap-2">
+                                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                                   {[
                                     { label: 'Google Pay',  icon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f2/Google_Pay_Logo.svg/48px-Google_Pay_Logo.svg.png',   link: `gpay://upi/pay?pa=rrupa2289-1%40okaxis&pn=Adyapan&am=${grandTotal.toFixed(2)}&cu=INR&tn=Adyapan+Course` },
                                     { label: 'PhonePe',     icon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5f/PhonePe_Logo.png/48px-PhonePe_Logo.png',              link: `phonepe://pay?pa=rrupa2289-1%40okaxis&pn=Adyapan&am=${grandTotal.toFixed(2)}&cu=INR&tn=Adyapan+Course` },
@@ -696,8 +696,8 @@ export default function CheckoutPage() {
                                   </div>
                                 </div>
                                 <input value={cardName} onChange={e => setCardName(e.target.value)} placeholder="Name on card" className={inp()} />
-                                <div className="flex gap-3">
-                                  <input value={cardMM} onChange={e => setCardMM(e.target.value.slice(0,2))} placeholder="MM" className={`${inp()} w-20`} />
+                                <div className="flex flex-col sm:flex-row gap-3">
+                                  <input value={cardMM} onChange={e => setCardMM(e.target.value.slice(0,2))} placeholder="MM" className={`${inp()} sm:w-20`} />
                                   <input value={cardYY} onChange={e => setCardYY(e.target.value.slice(0,4))} placeholder="YYYY" className={`${inp()} w-24`} />
                                   <input value={cardCvv} onChange={e => setCardCvv(e.target.value.replace(/\D/,'').slice(0,3))} placeholder="CVV" type="password" className={`${inp()} w-20`} />
                                 </div>

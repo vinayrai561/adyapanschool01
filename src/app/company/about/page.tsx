@@ -643,51 +643,6 @@ export default function CompanyAboutPage() {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="bg-gray-900 border-t border-gray-800 py-12">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
-            <div>
-              <Link href="/company" className="flex items-center space-x-2 mb-4">
-                <img
-                  src="/images/adyapan-logo-bg.png"
-                  alt="Adyapan Logo"
-                  className="h-8 w-auto"
-                />
-              </Link>
-              <p className="text-gray-400 text-sm">Crafting futures, not just careers</p>
-            </div>
-            <div>
-              <h4 className="text-white font-bold mb-4">Learning</h4>
-              <ul className="space-y-2 text-gray-400 text-sm">
-                <li><Link href="/company/programs" className="hover:text-white transition-colors">Programs</Link></li>
-                <li><Link href="/company/assessment" className="hover:text-white transition-colors">Assessment</Link></li>
-                <li><Link href="/company/marketplace" className="hover:text-white transition-colors">Marketplace</Link></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="text-white font-bold mb-4">Company</h4>
-              <ul className="space-y-2 text-gray-400 text-sm">
-                <li><Link href="/company/about" className="hover:text-white transition-colors">About</Link></li>
-                <li><Link href="#" className="hover:text-white transition-colors">Blog</Link></li>
-                <li><Link href="#" className="hover:text-white transition-colors">Contact</Link></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="text-white font-bold mb-4">Legal</h4>
-              <ul className="space-y-2 text-gray-400 text-sm">
-                <li><Link href="#" className="hover:text-white transition-colors">Privacy</Link></li>
-                <li><Link href="#" className="hover:text-white transition-colors">Terms</Link></li>
-                <li><Link href="#" className="hover:text-white transition-colors">Security</Link></li>
-              </ul>
-            </div>
-          </div>
-          <div className="border-t border-gray-800 pt-8 text-center text-gray-500 text-sm">
-            <p>&copy; 2024 Adyapan. All rights reserved.</p>
-            <p className="text-gray-600 text-xs mt-1">Developed by <span className="text-[#ffa800] font-semibold">Rupesh</span> ✦ with ❤️</p>
-          </div>
-        </div>
-      </footer>
     </div>
   );
 }

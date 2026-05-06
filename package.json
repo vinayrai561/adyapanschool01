@@ -10,13 +10,15 @@
     "lint": "next lint",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
-    "db:studio": "prisma studio"
+    "db:studio": "prisma studio",
+    "seed:certificates": "node scripts/seed-certificates.js"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.3.2",
     "@prisma/client": "^5.7.0",
     "@supabase/supabase-js": "^2.105.1",
     "@types/matter-js": "^0.20.2",
+    "@types/pdfkit": "^0.17.6",
     "autoprefixer": "^10.4.16",
     "axios": "^1.6.2",
     "bcrypt": "^6.0.0",
@@ -32,6 +34,7 @@
     "mongoose": "9.5.0",
     "next": "^14.2.35",
     "nodemailer": "6.9.14",
+    "pdfkit": "^0.18.0",
     "postcss": "^8.4.33",
     "prisma": "^5.7.0",
     "razorpay": "^2.9.6",

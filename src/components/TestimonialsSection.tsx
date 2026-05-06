@@ -3,17 +3,18 @@
 import { motion } from 'framer-motion';
 
 const testimonials = [
-  { initials: 'PS', name: 'Priya Sharma', role: 'Frontend Developer', company: 'Razorpay', tag: 'Web Development', quote: 'The Career GPS showed me exactly what I was missing. Within 3 months of following the roadmap and completing marketplace tasks, I had my first real job offer.' },
-  { initials: 'AM', name: 'Arjun Mehta', role: 'Data Analyst', company: 'Swiggy', tag: 'Data Science', quote: 'The skills assessment was eye-opening. I thought I knew Python, but the gap analysis showed me I was missing SQL and visualization. Fixed those gaps and landed the role.' },
+  { initials: 'RR', name: 'Rupesh Rupak', role: 'Full stack Developer', company: 'Razorpay', tag: 'Web Development', quote: 'The Career GPS showed me exactly what I was missing. Within 3 months of following the roadmap and completing marketplace tasks, I had my first real job offer.' },
+  { initials: 'RA', name: 'Rukhsana Azami', role: 'Data Analyst', company: 'Swiggy', tag: 'Data Science', quote: 'The skills assessment was eye-opening. I thought I knew Python, but the gap analysis showed me I was missing SQL and visualization. Fixed those gaps and landed the role.' },
   { initials: 'KR', name: 'Kavya Reddy', role: 'Growth Marketer', company: 'Zepto', tag: 'Digital Marketing', quote: 'I completed 4 marketplace tasks for a D2C brand. They liked my work so much, they offered me a full-time position. The platform literally created my career.' },
   { initials: 'RV', name: 'Rohan Verma', role: 'UX Designer', company: 'Meesho', tag: 'Design', quote: 'The verified credentials gave me proof beyond certificates. Employers could see my actual project work, not just a badge. That made all the difference.' },
 ];
 
+
 const TestimonialsSection = () => {
   return (
-    <section id="testimonials" className="bg-[#f5f0eb] py-20 px-6 overflow-hidden">
+    <section id="testimonials" className="bg-[#f5f0eb] py-16 sm:py-20 px-4 sm:px-6 overflow-hidden">
       <div className="max-w-6xl mx-auto">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-12 items-start">
           
           {/* Left Sidebar */}
           <motion.div
@@ -21,9 +22,9 @@ const TestimonialsSection = () => {
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-            className="lg:sticky lg:top-20"
+            className="lg:sticky lg:top-20 mb-8 lg:mb-0"
           >
-            <h2 className="text-5xl md:text-6xl font-extrabold text-[#1a1a2e] mb-8 leading-tight">
+            <h2 className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-[#1a1a2e] mb-6 lg:mb-8 leading-tight">
               What Our<br />Students<br />Say
             </h2>
             <p className="text-lg text-[#666] mb-8 leading-relaxed">

@@ -4,81 +4,8 @@ import { useParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { useState } from 'react';
-import { Star, Play, CheckCircle, Download, MessageCircle, Clock, Users, Award } from 'lucide-react';
+import { Star, Play, CheckCircle, Download, Clock, Users, Award } from 'lucide-react';
 import PricingModal from '@/components/PricingModal';
-
-// Helper function to get brochure filename from course slug
-const getBrochureFilename = (slug: string, courseTitle: string) => {
-  // Mapping of course slugs to actual brochure filenames
-  const brochureMapping: Record<string, string> = {
-    'artificial-intelligence': 'Artificial Intelligence.pdf',
-    'ai-engineering': 'Artificial Intelligence Engineering.pdf',
-    'generative-ai': 'Generative Artificial Intelligence.pdf',
-    'machine-learning': 'Machine Learning.pdf',
-    'data-science': 'Data Science Profesional Program.pdf',
-    'data-engineering': 'Data Engineering.pdf',
-    'data-analytics': 'Data Analytics.pdf',
-    'database-management-dbms': 'Database Management System.pdf',
-    'data-structures-algorithms': 'Data Structure & Algorithm (DSA).pdf',
-    'web-development': 'Web Devlopment.pdf',
-    'app-development': 'App Development Program.pdf',
-    'python-full-stack': 'Python full stack Development.pdf',
-    'python-programming-curriculum': 'Python full stack Development.pdf',
-    'java-programming': 'Java Program Curriculum.pdf',
-    'java-full-stack': 'Java Full Stack.pdf',
-    'selenium-testing-with-java': 'Selenium Testing Java.pdf',
-    'devops-engineering': 'Devops Engineering Program.pdf',
-    'cloud-computing': 'Cloud Computing.pdf',
-    'aws': 'Amazon Web Services.pdf',
-    'cyber-security': 'Cyber Security.pdf',
-    'blockchain-bitcoin': 'Blockchain & Bitcoin Programming.pdf',
-    'ar-vr-development': 'AR-VR Development Program.pdf',
-    'ui-ux-design': 'UI_UX Design Program.pdf',
-    'graphic-design': 'Graphic Design Program.pdf',
-    'vfx': 'VFX.pdf',
-    'finance': 'Finance Program.pdf',
-    'investment-banking': 'Investment Banking.pdf',
-    'business-analytics': 'Business Analytics.pdf',
-    'marketing-management': 'Marketing Management Program.pdf',
-    'digital-marketing-growth-strategy': 'Digital Marketing & Growth Strategy.pdf',
-    'social-media-marketing': 'Social Media Marketing Program.pdf',
-    'hrm': 'Human Resource Management (HRM).pdf',
-    'management-consultancy': 'Marketing Management Program.pdf',
-    'supply-chain-management': 'Supply Chain Management.pdf',
-    'sap-fica': 'SAP FICA ( Finance control accounting ).pdf',
-    'salesforce': 'SalesForce.pdf',
-    'stock-marketing': 'Stock Marketing Program.pdf',
-    'acca-f4-business-corporate-law': 'ACCA F4 (Corporate Law).pdf',
-    'chartered-accountancy-cfa': 'Chartered Accountancy(Chartered Financial Analyst).pdf',
-    'spoken-english-communication': 'ACFrOgBL7ZEDGmdINlBTakKnSmLLTuN.pdf',
-    'embedded-systems': 'Embedded System Program.pdf',
-    'hybrid-electric-vehicle': 'Hybrid & Electrical Engineering program.pdf',
-    'vlsi': 'Very Large Scale Integration (VLSI).pdf',
-    'iot-robotics': 'Internet of Things & Robotics Program.pdf',
-    'power-systems': 'Hybrid & Electrical Engineering program.pdf',
-    'business-financial-economics': 'Finance Program.pdf',
-    'investment-analysis': 'Investment Banking.pdf',
-    'data-analysis-for-economics': 'Data Analytics.pdf',
-    'financial-economics': 'Finance Program.pdf',
-    'autocad': 'AutoCAD Design Program.pdf',
-    'catia': 'Catia.pdf',
-    'car-design': 'AutoCAD Design Program.pdf',
-    'quality-safety-professionals': 'Quality & Safety Professionals.pdf',
-    'bioinformatics': 'Bioinformatics Program.pdf',
-    'microbiology': 'Microbiology program.pdf',
-    'molecular-biology': 'Molecular Biology.pdf',
-    'genetic-engineering': 'Genetics Engineering Program.pdf',
-    'pharmacovigilance': 'Pharmacovigilance Curriculum.pdf',
-    'nano-technology': 'Nano Technology Program.pdf',
-    'food-science-technology': 'Food Science & Technology.pdf',
-    'nutrition-health-management': 'Nutrition & Health Management.pdf',
-    'sensory-science': 'Sensory Science.pdf',
-    'medical-coding': 'Medical Coding Curriculum.pdf',
-    'construction-planning': 'Construction Planning.pdf'
-  };
-
-  return brochureMapping[slug] || `${courseTitle} Program.pdf`;
-};
 
 // Helper function to generate instructor data based on course
 const generateInstructors = (courseTitle: string) => {
@@ -109,13 +36,11 @@ const generateCourseData = (title: string, category: string) => ({
   image: `https://images.unsplash.com/photo-${Math.floor(Math.random() * 1000000000000000)}?q=80&w=800&auto=format&fit=crop`,
   description: `Master ${title}: Comprehensive curriculum with live projects and industry experts`,
   highlights: [
-    'Live online interactive sessions from IIT faculty & top industry experts',
+    'Live online interactive sessions from Adyapan faculty & top industry experts',
     'Guaranteed placement support with our career services for freshers and professionals',
-    `Earn prestigious ${title} certification from iHub IIT Roorkee & Microsoft`,
+    `Earn prestigious ${title} certification`,
     'Work on real projects and build industry-ready portfolio'
   ],
-  partner: 'Microsoft',
-  partnerLogo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/44/Microsoft_logo.svg/512px-Microsoft_logo.svg.png',
   curriculum: {
     title: `Advanced ${title} Curriculum To Help You Master Industry Skills`,
     modules: [
@@ -199,13 +124,11 @@ const courseData: Record<string, any> = {
     image: 'https://images.unsplash.com/photo-1677442136019-21780ecad995?q=80&w=800&auto=format&fit=crop',
     description: 'Master AI fundamentals: Machine Learning, Deep Learning, Neural Networks & more',
     highlights: [
-      'Live online interactive sessions from IIT faculty & top industry experts',
+      'Live online interactive sessions from Adyapan faculty & top industry experts',
       'Guaranteed placement support with our career services for freshers and professionals',
-      'Earn prestigious AI certification from iHub IIT Roorkee & Microsoft',
+      ,
       'Work on real AI projects and build industry-ready portfolio'
     ],
-    partner: 'Microsoft',
-    partnerLogo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/44/Microsoft_logo.svg/512px-Microsoft_logo.svg.png',
     curriculum: {
       title: 'Advanced AI Curriculum To Help You Master Machine Learning, Deep Learning & Neural Networks',
       modules: [
@@ -338,11 +261,9 @@ const courseData: Record<string, any> = {
     highlights: [
       'Live online interactive sessions from IIT faculty & top industry experts',
       'Guaranteed placement support with our career services for freshers and professionals',
-      'Earn prestigious data science certification from iHub IIT Roorkee & Microsoft',
+      'Earn prestigious data science certification',
       'Work on real data science projects with industry datasets'
     ],
-    partner: 'Microsoft',
-    partnerLogo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/44/Microsoft_logo.svg/512px-Microsoft_logo.svg.png',
     curriculum: {
       title: 'Advanced Data Engineering Curriculum To Help You Master Cloud, ETL & Big Data',
       modules: [
@@ -485,8 +406,6 @@ const courseData: Record<string, any> = {
       'Industry-standard tools: Python, Scikit-learn, TensorFlow',
       'End-to-end ML project development and deployment'
     ],
-    partner: 'Google',
-    partnerLogo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/2f/Google_2015_logo.svg/512px-Google_2015_logo.svg.png',
     curriculum: {
       title: 'Comprehensive Machine Learning Curriculum From Basics to Advanced',
       modules: [
@@ -519,6 +438,8 @@ export default function CoursePage() {
   const slug = (params?.slug as string) || '';
   const [activeModule, setActiveModule] = useState(0);
   const [isPricingOpen, setIsPricingOpen] = useState(false);
+  const [brochureLoading, setBrochureLoading] = useState(false);
+  const [brochureError, setBrochureError] = useState('');
   
   // Try to get course from predefined data, otherwise generate it
   let course = courseData[slug];
@@ -574,16 +495,6 @@ export default function CoursePage() {
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.6 }}
             >
-              {/* Logo */}
-              <div className="flex items-center space-x-3 mb-6">
-                <div className="w-12 h-12 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl flex items-center justify-center">
-                  <span className="text-white font-bold text-sm">iHub</span>
-                </div>
-                <div>
-                  <div className="text-sm font-semibold text-gray-800">iHub DivyaSampark</div>
-                  <div className="text-xs text-gray-600">IIT Roorkee</div>
-                </div>
-              </div>
 
               <h1 className="text-4xl font-bold text-gray-800 mb-4">{course.title} Course</h1>
               
@@ -608,32 +519,66 @@ export default function CoursePage() {
                 ))}
               </div>
 
-              {/* Partner */}
-              <div className="mb-8">
-                <p className="text-sm text-gray-600 mb-2">In Collaboration With</p>
-                <img src={course.partnerLogo} alt={course.partner} className="h-8" />
-              </div>
-
               {/* Action Buttons */}
               <div className="flex flex-col sm:flex-row gap-4">
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  className="px-6 py-3 bg-orange-600 text-white rounded-lg font-semibold hover:bg-orange-700 transition-colors flex items-center justify-center space-x-2"
-                >
-                  <MessageCircle className="w-4 h-4" />
-                  <span>Talk to Advisor</span>
-                </motion.button>
-                <motion.a
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  href={`/brochures/${encodeURIComponent(getBrochureFilename(slug, course.title))}`}
-                  download={getBrochureFilename(slug, course.title)}
-                  className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-50 transition-colors flex items-center justify-center space-x-2"
-                >
-                  <Download className="w-4 h-4" />
-                  <span>Download Brochure</span>
-                </motion.a>
+                <div className="flex flex-col w-full sm:w-auto">
+                  <motion.button
+                    whileHover={{ scale: brochureLoading ? 1 : 1.05, boxShadow: brochureLoading ? 'none' : '0 8px 25px rgba(255,138,0,0.35)' }}
+                    whileTap={{ scale: brochureLoading ? 1 : 0.95 }}
+                    disabled={brochureLoading}
+                    onClick={async () => {
+                      setBrochureError('');
+                      setBrochureLoading(true);
+                      try {
+                        const res = await fetch(`/api/courses/brochure?title=${encodeURIComponent(course.title)}`);
+                        if (!res.ok) {
+                          const data = await res.json().catch(() => ({}));
+                          setBrochureError(data.error || 'Brochure not available for this course.');
+                          return;
+                        }
+                        const blob = await res.blob();
+                        const disposition = res.headers.get('Content-Disposition') || '';
+                        const match = disposition.match(/filename="(.+?)"/);
+                        const filename = match ? match[1] : `${course.title} Brochure.pdf`;
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = filename;
+                        document.body.appendChild(a);
+                        a.click();
+                        a.remove();
+                        URL.revokeObjectURL(url);
+                      } catch {
+                        setBrochureError('Something went wrong. Please try again.');
+                      } finally {
+                        setBrochureLoading(false);
+                      }
+                    }}
+                    className={`w-full sm:w-auto px-6 py-3 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all duration-200 ${
+                      brochureLoading
+                        ? 'bg-orange-100 text-orange-400 cursor-not-allowed border border-orange-200'
+                        : 'bg-gradient-to-r from-[#ffa800] to-[#ff6b00] text-white shadow-md hover:shadow-orange-300'
+                    }`}
+                  >
+                    {brochureLoading ? (
+                      <>
+                        <svg className="w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/>
+                        </svg>
+                        <span>Downloading...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Download className="w-4 h-4" />
+                        <span>Download Brochure</span>
+                      </>
+                    )}
+                  </motion.button>
+                  {brochureError && (
+                    <p className="text-xs text-red-500 mt-1.5 text-center">{brochureError}</p>
+                  )}
+                </div>
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}

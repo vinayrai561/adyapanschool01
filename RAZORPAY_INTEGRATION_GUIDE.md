@@ -2,7 +2,7 @@
 
 ## Overview
 
-This document describes the secure, production-ready Razorpay payment integration for Adyapan Skills Passport.
+This document describes the secure, production-ready Razorpay payment integration for Adyapan School Passport.
 
 **Key Security Features:**
 - ✅ Server-side signature verification (HMAC SHA256)
@@ -140,8 +140,8 @@ Frontend (UPI)
   "razorpay_order_id": "order_XXXXX",
   "razorpay_payment_id": "pay_XXXXX",
   "razorpay_signature": "signature_hash",
-  "customerName": "John Doe",
-  "customerEmail": "john@example.com",
+  "customerName": "Rupesh Rupak",
+  "customerEmail": "rupesh@example.com",
   "customerPhone": "9876543210",
   "planName": "Adyapan Career Pro",
   "planLabel": "Career Pro Plan",

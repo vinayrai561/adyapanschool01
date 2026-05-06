@@ -115,7 +115,7 @@ function LoginContent() {
             {/* Logo + heading */}
             <div className="text-center mb-8">
               <Link href="/" className="inline-block mb-5">
-                <img src="/images/adyapan-logo-bg.png" alt="Adyapan" className="h-10 w-auto mx-auto hover:scale-105 transition-transform" />
+                <img src="/adyapan-logo.png" alt="Adyapan" className="h-10 w-auto mx-auto hover:scale-105 transition-transform" />
               </Link>
               <h1 className="text-2xl font-extrabold text-gray-900">Welcome back 👋</h1>
               <p className="text-gray-500 text-sm mt-1">Sign in to continue your journey</p>

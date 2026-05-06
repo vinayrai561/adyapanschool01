@@ -4,30 +4,24 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 
-/* ─── Types ──────────────────────────────────────────────────── */
-interface CookiePreferences {
+const STORAGE_KEY = 'adyapan_cookie_consent';
+
+interface CookiePrefs {
   necessary: boolean;
   analytics: boolean;
   marketing: boolean;
   functional: boolean;
 }
 
-const defaultPrefs: CookiePreferences = {
+const defaultPrefs: CookiePrefs = {
   necessary: true,
   analytics: true,
   marketing: false,
   functional: true,
 };
 
-/* ─── Toggle switch ──────────────────────────────────────────── */
-function Toggle({
-  checked,
-  disabled,
-  onChange,
-}: {
-  checked: boolean;
-  disabled?: boolean;
-  onChange?: (v: boolean) => void;
+function Toggle({ checked, disabled, onChange }: {
+  checked: boolean; disabled?: boolean; onChange?: (v: boolean) => void;
 }) {
   return (
     <button
@@ -36,289 +30,215 @@ function Toggle({
       aria-checked={checked}
       disabled={disabled}
       onClick={() => onChange?.(!checked)}
-      className={`relative flex-shrink-0 w-10 h-5 rounded-full transition-colors duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#ffa800] ${
-        disabled
-          ? 'bg-[#ffa800] cursor-not-allowed opacity-70'
-          : checked
-          ? 'bg-[#ffa800] cursor-pointer'
-          : 'bg-gray-200 cursor-pointer'
+      className={`relative flex-shrink-0 w-9 h-5 rounded-full transition-colors duration-300 focus:outline-none ${
+        disabled ? 'bg-[#ffa800] cursor-not-allowed opacity-70'
+        : checked  ? 'bg-[#ffa800] cursor-pointer'
+        : 'bg-gray-200 cursor-pointer'
       }`}
     >
-      <span
-        className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow-sm transition-transform duration-300 ${
-          checked ? 'translate-x-5' : 'translate-x-0'
-        }`}
-      />
+      <span className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform duration-300 ${
+        checked ? 'translate-x-4' : 'translate-x-0'
+      }`} />
     </button>
   );
 }
 
-/* ─── Cookie row (landscape: icon + text + toggle in one line) ── */
-function CookieRow({
-  icon,
-  label,
-  description,
-  checked,
-  disabled,
-  onChange,
-}: {
-  icon: string;
-  label: string;
-  description: string;
-  checked: boolean;
-  disabled?: boolean;
-  onChange?: (v: boolean) => void;
-}) {
-  return (
-    <div className="flex items-center gap-3 py-2.5 border-b border-gray-100 last:border-0">
-      <span className="text-lg flex-shrink-0">{icon}</span>
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-1.5">
-          <span className="text-xs font-bold text-gray-800">{label}</span>
-          {disabled && (
-            <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-[#ffa800]/15 text-[#ffa800] uppercase tracking-wide">
-              Required
-            </span>
-          )}
-        </div>
-        <p className="text-[11px] text-gray-500 leading-snug truncate">{description}</p>
-      </div>
-      <Toggle checked={checked} disabled={disabled} onChange={onChange} />
-    </div>
-  );
-}
-
-/* ─── Main component ─────────────────────────────────────────── */
 export default function CookieConsent() {
-  // Always show on every page load / refresh
-  const [visible, setVisible] = useState(false);
+  const [visible,       setVisible]       = useState(false);
   const [showCustomize, setShowCustomize] = useState(false);
-  const [prefs, setPrefs] = useState<CookiePreferences>(defaultPrefs);
+  const [prefs,         setPrefs]         = useState<CookiePrefs>(defaultPrefs);
 
+  /* ── Show only if user hasn't consented yet ── */
   useEffect(() => {
-    // Show after a short delay so the page renders first
-    const t = setTimeout(() => setVisible(true), 800);
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) return; // already consented — never show again
+    } catch {}
+    // First visit — show after short delay
+    const t = setTimeout(() => setVisible(true), 900);
     return () => clearTimeout(t);
   }, []);
 
-  const toggle = (key: keyof CookiePreferences) => (val: boolean) => {
+  const save = (p: CookiePrefs) => {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(p)); } catch {}
+    setVisible(false);
+  };
+
+  const acceptAll  = () => save({ necessary: true, analytics: true, marketing: true, functional: true });
+  const rejectAll  = () => save({ necessary: true, analytics: false, marketing: false, functional: false });
+  const saveChoice = () => save(prefs);
+
+  const toggle = (key: keyof CookiePrefs) => (val: boolean) => {
     if (key === 'necessary') return;
     setPrefs(p => ({ ...p, [key]: val }));
   };
 
-  const acceptAll = () => {
-    setPrefs({ necessary: true, analytics: true, marketing: true, functional: true });
-    setVisible(false);
-  };
-
-  const saveSelected = () => setVisible(false);
-
-  const rejectAll = () => {
-    setPrefs({ necessary: true, analytics: false, marketing: false, functional: false });
-    setVisible(false);
-  };
+  const cookieTypes = [
+    { key: 'necessary' as const,  label: 'Necessary',  desc: 'Auth, sessions, security',       required: true  },
+    { key: 'analytics' as const,  label: 'Analytics',  desc: 'Page views & usage data',        required: false },
+    { key: 'functional' as const, label: 'Functional', desc: 'Preferences & settings',         required: false },
+    { key: 'marketing' as const,  label: 'Marketing',  desc: 'Ad targeting & measurement',     required: false },
+  ];
 
   return (
     <AnimatePresence>
       {visible && (
         <>
-          {/* ── Semi-transparent backdrop ── */}
+          {/* Backdrop */}
           <motion.div
-            key="cookie-backdrop"
+            key="backdrop"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.25 }}
-            className="fixed inset-0 z-[998] bg-black/30 backdrop-blur-[2px]"
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 bg-black/40 backdrop-blur-[2px]"
+            style={{ zIndex: 998 }}
           />
 
-          {/* ── White landscape card — centred on screen ── */}
+          {/* Banner */}
           <motion.div
-            key="cookie-banner"
-            initial={{ opacity: 0, scale: 0.94, y: 24 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.94, y: 24 }}
-            transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-            className="fixed z-[999] inset-x-4 bottom-4 sm:inset-x-auto sm:bottom-6 sm:left-1/2 sm:-translate-x-1/2 sm:w-full sm:max-w-3xl"
+            key="banner"
+            initial={{ opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 40 }}
+            transition={{ type: 'spring', stiffness: 280, damping: 28 }}
+            style={{ zIndex: 999 }}
+            className="fixed bottom-3 left-3 right-3 sm:bottom-5 sm:left-1/2 sm:right-auto sm:-translate-x-1/2 sm:w-[min(96vw,720px)]"
           >
             <div className="bg-white rounded-2xl shadow-2xl overflow-hidden border border-gray-100">
 
-              {/* ── Top orange stripe ── */}
-              <div className="h-1 w-full bg-gradient-to-r from-[#ffa800] via-[#ff6b00] to-[#ffa800]" />
+              {/* Orange top bar */}
+              <div className="h-1 w-full" style={{ background: 'linear-gradient(90deg,#ffa800,#ff6b00,#ffa800)' }} />
 
               {!showCustomize ? (
-                /* ════════════════════════════════════════════════
-                   LANDSCAPE BANNER — two columns side by side
-                ════════════════════════════════════════════════ */
-                <div className="flex flex-col sm:flex-row items-stretch">
+                /* ── Main banner ── */
+                <div className="p-4 sm:p-5">
 
-                  {/* Left — text */}
-                  <div className="flex-1 px-6 py-5 flex flex-col justify-center">
-                    <div className="flex items-center gap-2 mb-2">
-                      <span className="text-2xl">🍪</span>
-                      <h3 className="text-gray-900 font-extrabold text-lg leading-tight">
-                        We use cookies
-                      </h3>
+                  {/* Header row */}
+                  <div className="flex items-start gap-3 mb-3">
+                    <div className="w-9 h-9 rounded-xl bg-orange-100 flex items-center justify-center flex-shrink-0">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="#f97316" strokeWidth="2" className="w-5 h-5">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z" />
+                      </svg>
                     </div>
-                    <p className="text-gray-500 text-sm leading-relaxed">
-                      Adyapan uses cookies to improve your experience, analyse traffic, and
-                      personalise content. You can accept all, customise your choices, or
-                      reject non-essential cookies.{' '}
-                      <Link
-                        href="/privacy"
-                        className="text-[#ffa800] font-semibold hover:underline"
-                      >
-                        Privacy Policy ↗
-                      </Link>
-                    </p>
-
-                    {/* Cookie type pills */}
-                    <div className="flex flex-wrap gap-1.5 mt-3">
-                      {[
-                        { label: '🔒 Necessary', active: true },
-                        { label: '📊 Analytics', active: true },
-                        { label: '⚙️ Functional', active: true },
-                        { label: '📣 Marketing', active: false },
-                      ].map(({ label, active }) => (
-                        <span
-                          key={label}
-                          className={`text-[11px] font-semibold px-2.5 py-1 rounded-full border ${
-                            active
-                              ? 'border-[#ffa800]/40 text-[#ffa800] bg-[#ffa800]/8'
-                              : 'border-gray-200 text-gray-400 bg-gray-50'
-                          }`}
-                        >
-                          {label}
-                        </span>
-                      ))}
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-extrabold text-gray-900 text-base leading-tight">We use cookies</h3>
+                      <p className="text-gray-500 text-xs leading-relaxed mt-0.5">
+                        Adyapan uses cookies to improve your experience and personalise content.{' '}
+                        <Link href="/privacy" className="text-[#ffa800] font-semibold hover:underline">
+                          Privacy Policy
+                        </Link>
+                      </p>
                     </div>
                   </div>
 
-                  {/* Divider */}
-                  <div className="hidden sm:block w-px bg-gray-100 my-4" />
+                  {/* Cookie type pills — wrap on small screens */}
+                  <div className="flex flex-wrap gap-1.5 mb-4">
+                    {cookieTypes.map(({ key, label, required }) => (
+                      <span key={key}
+                        className={`text-[11px] font-semibold px-2.5 py-1 rounded-full border ${
+                          required || prefs[key]
+                            ? 'border-orange-300 text-orange-600 bg-orange-50'
+                            : 'border-gray-200 text-gray-400 bg-gray-50'
+                        }`}
+                      >
+                        {label}
+                      </span>
+                    ))}
+                  </div>
 
-                  {/* Right — buttons */}
-                  <div className="flex flex-col justify-center gap-2.5 px-6 py-5 sm:w-52 flex-shrink-0">
+                  {/* Action buttons — stack on mobile, row on sm+ */}
+                  <div className="flex flex-col sm:flex-row gap-2">
                     <motion.button
-                      whileHover={{ scale: 1.03 }}
-                      whileTap={{ scale: 0.97 }}
+                      whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
                       onClick={acceptAll}
-                      className="w-full py-2.5 bg-[#ffa800] hover:bg-[#e69500] text-white text-sm font-bold rounded-xl transition-colors shadow-sm shadow-[#ffa800]/30"
+                      className="flex-1 py-2.5 rounded-xl text-sm font-bold text-white transition-colors"
+                      style={{ background: 'linear-gradient(135deg,#ffa800,#ff6b00)' }}
                     >
-                      ✓ Accept All
+                      Accept All
                     </motion.button>
                     <motion.button
-                      whileHover={{ scale: 1.03 }}
-                      whileTap={{ scale: 0.97 }}
+                      whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
                       onClick={() => setShowCustomize(true)}
-                      className="w-full py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-semibold rounded-xl transition-colors"
+                      className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 transition-colors"
                     >
-                      ⚙ Customize
+                      Customize
                     </motion.button>
                     <motion.button
-                      whileHover={{ scale: 1.03 }}
-                      whileTap={{ scale: 0.97 }}
+                      whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
                       onClick={rejectAll}
-                      className="w-full py-2 text-gray-400 hover:text-gray-600 text-xs font-medium transition-colors underline underline-offset-2"
+                      className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-gray-400 hover:text-gray-600 border border-gray-200 hover:border-gray-300 transition-colors"
                     >
-                      Reject non-essential
+                      Reject
                     </motion.button>
                   </div>
                 </div>
 
               ) : (
-                /* ════════════════════════════════════════════════
-                   CUSTOMIZE PANEL — landscape grid of toggles
-                ════════════════════════════════════════════════ */
-                <div className="px-6 py-5">
+                /* ── Customize panel ── */
+                <div className="p-4 sm:p-5">
 
                   {/* Header */}
-                  <div className="flex items-center justify-between mb-1">
-                    <div className="flex items-center gap-2">
-                      <span className="text-xl">⚙️</span>
-                      <h3 className="text-gray-900 font-extrabold text-base">
-                        Cookie Preferences
-                      </h3>
-                    </div>
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="font-extrabold text-gray-900 text-base">Cookie Preferences</h3>
                     <button
                       onClick={() => setShowCustomize(false)}
-                      className="w-7 h-7 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-500 hover:text-gray-800 transition-colors text-lg leading-none"
+                      className="w-7 h-7 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-500 text-sm transition-colors"
                       aria-label="Back"
                     >
                       ←
                     </button>
                   </div>
-                  <p className="text-xs text-gray-400 mb-4">
-                    Toggle each category. Necessary cookies are always active.
-                  </p>
 
-                  {/* 2-column grid of toggles on sm+ */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 sm:gap-x-8">
-                    <CookieRow
-                      icon="🔒"
-                      label="Necessary"
-                      description="Auth, sessions, security — always required"
-                      checked={true}
-                      disabled
-                    />
-                    <CookieRow
-                      icon="📊"
-                      label="Analytics"
-                      description="Page views, clicks, scroll depth"
-                      checked={prefs.analytics}
-                      onChange={toggle('analytics')}
-                    />
-                    <CookieRow
-                      icon="⚙️"
-                      label="Functional"
-                      description="Saved preferences, chat, language"
-                      checked={prefs.functional}
-                      onChange={toggle('functional')}
-                    />
-                    <CookieRow
-                      icon="📣"
-                      label="Marketing"
-                      description="Ad targeting, campaign measurement"
-                      checked={prefs.marketing}
-                      onChange={toggle('marketing')}
-                    />
+                  {/* Toggle rows — 2 col on sm+ */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 sm:gap-x-6 mb-4">
+                    {cookieTypes.map(({ key, label, desc, required }) => (
+                      <div key={key} className="flex items-center gap-3 py-2.5 border-b border-gray-100 last:border-0 sm:[&:nth-last-child(-n+2)]:border-0">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-xs font-bold text-gray-800">{label}</span>
+                            {required && (
+                              <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-orange-100 text-orange-600 uppercase tracking-wide">
+                                Required
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-[11px] text-gray-400 leading-snug">{desc}</p>
+                        </div>
+                        <Toggle
+                          checked={required ? true : prefs[key]}
+                          disabled={required}
+                          onChange={required ? undefined : toggle(key)}
+                        />
+                      </div>
+                    ))}
                   </div>
 
-                  {/* Action row */}
-                  <div className="flex flex-col sm:flex-row gap-2 mt-5 pt-4 border-t border-gray-100">
+                  {/* Actions */}
+                  <div className="flex flex-col sm:flex-row gap-2 pt-3 border-t border-gray-100">
                     <motion.button
-                      whileHover={{ scale: 1.03 }}
-                      whileTap={{ scale: 0.97 }}
+                      whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
                       onClick={acceptAll}
-                      className="flex-1 py-2.5 bg-[#ffa800] hover:bg-[#e69500] text-white text-sm font-bold rounded-xl transition-colors"
+                      className="flex-1 py-2.5 rounded-xl text-sm font-bold text-white transition-colors"
+                      style={{ background: 'linear-gradient(135deg,#ffa800,#ff6b00)' }}
                     >
                       Accept All
                     </motion.button>
                     <motion.button
-                      whileHover={{ scale: 1.03 }}
-                      whileTap={{ scale: 0.97 }}
-                      onClick={saveSelected}
-                      className="flex-1 py-2.5 bg-gray-900 hover:bg-gray-700 text-white text-sm font-semibold rounded-xl transition-colors"
+                      whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
+                      onClick={saveChoice}
+                      className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white bg-gray-800 hover:bg-gray-700 transition-colors"
                     >
-                      Save My Choices
+                      Save Choices
                     </motion.button>
                     <motion.button
-                      whileHover={{ scale: 1.03 }}
-                      whileTap={{ scale: 0.97 }}
+                      whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
                       onClick={rejectAll}
-                      className="flex-1 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-500 text-sm font-semibold rounded-xl transition-colors"
+                      className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-gray-400 hover:text-gray-600 border border-gray-200 transition-colors"
                     >
                       Reject All
                     </motion.button>
                   </div>
-
-                  <p className="text-[11px] text-gray-400 text-center mt-3">
-                    Read our{' '}
-                    <Link href="/privacy" className="text-[#ffa800] hover:underline font-medium">
-                      Privacy Policy
-                    </Link>{' '}
-                    for full details.
-                  </p>
                 </div>
               )}
             </div>

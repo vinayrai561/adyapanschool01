@@ -6,8 +6,9 @@ import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   BookOpen, Award, Clock, CheckCircle, ChevronRight,
-  Play, Lock, BarChart2,
+  Play, Lock, BarChart2, Download, Trophy,
   TrendingUp, Star, Zap, ChevronDown, ChevronUp,
+  Calendar, GraduationCap, AlertCircle, Eye,
 } from 'lucide-react';
 import axios from 'axios';
 
@@ -39,18 +40,49 @@ interface ProgressData {
   progressPercent: number;
   totalLessons: number;
   lastLessonId: string;
+  lastModuleId: string;
   completedAt: string | null;
+  isComplete: boolean;
+}
+interface CertificateData {
+  certificateId: string;
+  studentName: string;
+  courseName: string;
+  issuedAt: string;
+  status: 'ready' | 'pending';
+  downloadUrl: string;
 }
 interface EnrolledCourse {
-  enrollment: { id: string; courseSlug: string; courseName: string; planLabel: string; amountPaid: number; enrolledAt: string };
+  enrollment: {
+    id: string;
+    courseSlug: string;
+    courseName: string;
+    planLabel: string;
+    amountPaid: number;
+    enrolledAt: string;
+  };
   course: CourseData | null;
   progress: ProgressData;
+  certificate: CertificateData | null;
 }
-interface DashUser { id: string; name: string; email: string; role: string; avatar: string | null }
+interface DashUser {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+  avatar: string | null;
+}
+interface TemplateItem {
+  id: string;
+  type: string;
+  title: string;
+  imageUrl: string;
+  isActive: boolean;
+}
 
 /* ─── Helpers ────────────────────────────────────────────────── */
-const fmt = (n: number) => '₹' + n.toLocaleString('en-IN');
-const initials = (name: string) => name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
+const fmtDate = (d: string) =>
+  new Date(d).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
 
 function ProgressRing({ pct, size = 56 }: { pct: number; size?: number }) {
   const r = (size - 8) / 2;
@@ -72,22 +104,129 @@ function ProgressRing({ pct, size = 56 }: { pct: number; size?: number }) {
   );
 }
 
+/* ─── Certificate Card ───────────────────────────────────────── */
+function CertificateCard({
+  item,
+  onDownload,
+  downloading,
+}: {
+  item: EnrolledCourse;
+  onDownload: (courseSlug: string) => void;
+  downloading: string;
+}) {
+  const { course, progress, certificate } = item;
+  if (!course) return null;
+
+  const isComplete = progress.isComplete || progress.progressPercent === 100;
+  const isDownloading = downloading === course.slug;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      className={`rounded-2xl border p-5 flex flex-col gap-3 ${
+        isComplete
+          ? 'bg-gradient-to-br from-green-50 to-emerald-50 border-green-200'
+          : 'bg-gray-50 border-gray-200'
+      }`}
+    >
+      <div className="flex items-start gap-3">
+        <div
+          className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${
+            isComplete ? 'bg-green-100' : 'bg-gray-200'
+          }`}
+        >
+          {isComplete ? (
+            <Trophy className="w-6 h-6 text-green-600" />
+          ) : (
+            <Lock className="w-6 h-6 text-gray-400" />
+          )}
+        </div>
+        <div className="flex-1 min-w-0">
+          <h4 className="font-bold text-gray-900 text-sm truncate">{course.title}</h4>
+          {isComplete && certificate ? (
+            <p className="text-xs text-green-600 font-semibold mt-0.5">
+              Certificate Ready · ID: {certificate.certificateId}
+            </p>
+          ) : isComplete ? (
+            <p className="text-xs text-green-600 font-semibold mt-0.5">Certificate Ready</p>
+          ) : (
+            <p className="text-xs text-gray-500 mt-0.5">
+              {progress.progressPercent}% complete — {progress.totalLessons - progress.completedLessons.length} lessons remaining
+            </p>
+          )}
+        </div>
+      </div>
+
+      {isComplete && certificate ? (
+        <div className="space-y-2">
+          <div className="flex items-center gap-2 text-xs text-gray-500">
+            <Calendar className="w-3.5 h-3.5" />
+            <span>Issued: {fmtDate(certificate.issuedAt)}</span>
+          </div>
+          <button
+            onClick={() => onDownload(course.slug)}
+            disabled={isDownloading}
+            className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-green-600 hover:bg-green-700 text-white text-sm font-bold transition-colors disabled:opacity-60"
+          >
+            {isDownloading ? (
+              <>
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                Downloading…
+              </>
+            ) : (
+              <>
+                <Download className="w-4 h-4" /> Download Certificate
+              </>
+            )}
+          </button>
+        </div>
+      ) : isComplete ? (
+        <button
+          onClick={() => onDownload(course.slug)}
+          disabled={isDownloading}
+          className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-green-600 hover:bg-green-700 text-white text-sm font-bold transition-colors disabled:opacity-60"
+        >
+          {isDownloading ? (
+            <>
+              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              Downloading…
+            </>
+          ) : (
+            <>
+              <Download className="w-4 h-4" /> Download Certificate
+            </>
+          )}
+        </button>
+      ) : (
+        <div className="flex items-center gap-2 py-2.5 px-4 rounded-xl bg-gray-200 text-gray-500 text-sm font-semibold">
+          <Lock className="w-4 h-4" />
+          <span>Complete all lessons to unlock</span>
+        </div>
+      )}
+    </motion.div>
+  );
+}
+
 /* ─── Course Card ────────────────────────────────────────────── */
 function CourseCard({
-  item, onMarkLesson, expandedSlug, onToggleExpand,
+  item, onMarkLesson, expandedSlug, onToggleExpand, onDownload, downloading,
 }: {
   item: EnrolledCourse;
   onMarkLesson: (courseSlug: string, lessonId: string, moduleId: string) => void;
   expandedSlug: string | null;
   onToggleExpand: (slug: string) => void;
+  onDownload: (courseSlug: string) => void;
+  downloading: string;
 }) {
-  const { course, progress, enrollment } = item;
+  const { course, progress, enrollment, certificate } = item;
   if (!course) return null;
 
   const pct = progress.progressPercent;
   const done = progress.completedLessons;
   const isExpanded = expandedSlug === course.slug;
-  const isComplete = pct === 100;
+  const isComplete = progress.isComplete || pct === 100;
+  const isDownloading = downloading === course.slug;
 
   /* Find "continue" lesson — first incomplete */
   let continueLessonId = '';
@@ -139,10 +278,16 @@ function CourseCard({
         </div>
 
         {/* Stats row */}
-        <div className="flex items-center gap-4 text-xs text-gray-500 mb-4">
+        <div className="flex flex-wrap items-center gap-3 text-xs text-gray-500 mb-3">
           <span className="flex items-center gap-1"><Clock className="w-3.5 h-3.5" />{course.duration}</span>
           <span className="flex items-center gap-1"><BookOpen className="w-3.5 h-3.5" />{done.length}/{course.totalLessons} lessons</span>
           <span className="flex items-center gap-1"><BarChart2 className="w-3.5 h-3.5" />{course.category}</span>
+        </div>
+
+        {/* Enrollment date */}
+        <div className="flex items-center gap-1 text-xs text-gray-400 mb-4">
+          <Calendar className="w-3 h-3" />
+          <span>Enrolled {fmtDate(enrollment.enrolledAt)}</span>
         </div>
 
         {/* Progress bar */}
@@ -164,8 +309,21 @@ function CourseCard({
         {/* Action buttons */}
         <div className="flex gap-2">
           {isComplete ? (
-            <button className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-green-50 border border-green-200 text-green-700 text-sm font-bold hover:bg-green-100 transition-colors">
-              <Award className="w-4 h-4" /> View Certificate
+            <button
+              onClick={() => onDownload(course.slug)}
+              disabled={isDownloading}
+              className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-green-600 hover:bg-green-700 text-white text-sm font-bold transition-colors disabled:opacity-60"
+            >
+              {isDownloading ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  Downloading…
+                </>
+              ) : (
+                <>
+                  <Download className="w-4 h-4" /> Download Certificate
+                </>
+              )}
             </button>
           ) : (
             <motion.button
@@ -185,6 +343,14 @@ function CourseCard({
             {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
           </button>
         </div>
+
+        {/* Certificate locked notice */}
+        {!isComplete && (
+          <div className="mt-3 flex items-center gap-2 text-xs text-gray-400 bg-gray-50 rounded-xl px-3 py-2">
+            <Lock className="w-3.5 h-3.5 flex-shrink-0" />
+            <span>Complete all lessons to unlock your certificate</span>
+          </div>
+        )}
 
         {/* Expandable modules */}
         <AnimatePresence>
@@ -257,10 +423,28 @@ export default function StudentDashboard() {
   const [error, setError] = useState('');
   const [expandedSlug, setExpandedSlug] = useState<string | null>(null);
   const [updatingLesson, setUpdatingLesson] = useState('');
+  const [downloading, setDownloading] = useState('');
+  const [activeTab, setActiveTab] = useState<'courses' | 'certificates'>('courses');
+  const [templates, setTemplates] = useState<TemplateItem[]>([]);
+  const [templatesLoading, setTemplatesLoading] = useState(false);
+  const [previewTemplate, setPreviewTemplate] = useState<TemplateItem | null>(null);
 
   useEffect(() => {
     fetchDashboard();
+    fetchTemplates();
   }, []);
+
+  const fetchTemplates = async () => {
+    setTemplatesLoading(true);
+    try {
+      const res = await axios.get('/api/certificate-templates');
+      setTemplates(res.data.templates ?? []);
+    } catch {
+      /* silent — templates are non-critical */
+    } finally {
+      setTemplatesLoading(false);
+    }
+  };
 
   const fetchDashboard = async () => {
     try {
@@ -281,10 +465,11 @@ export default function StudentDashboard() {
   const handleMarkLesson = async (courseSlug: string, lessonId: string, moduleId: string) => {
     setUpdatingLesson(lessonId);
     try {
-      const res = await axios.post('/api/progress/update', { courseSlug, lessonId, moduleId });
+      const res = await axios.post('/api/progress/complete-lesson', { courseSlug, lessonId, moduleId });
       /* Update local state */
       setCourses(prev => prev.map(item => {
         if (item.course?.slug !== courseSlug) return item;
+        const isNowComplete = res.data.progressPercent === 100;
         return {
           ...item,
           progress: {
@@ -293,7 +478,9 @@ export default function StudentDashboard() {
             progressPercent:  res.data.progressPercent,
             totalLessons:     res.data.totalLessons,
             completedAt:      res.data.completedAt,
+            isComplete:       isNowComplete,
           },
+          certificate: res.data.certificate ?? item.certificate,
         };
       }));
     } catch {
@@ -303,10 +490,55 @@ export default function StudentDashboard() {
     }
   };
 
-  const handleLogout = async () => {
-    await axios.post('/api/auth/logout').catch(() => {});
-    window.dispatchEvent(new Event('auth-change'));
-    router.push('/');
+  const handleDownload = async (courseSlug: string) => {
+    setDownloading(courseSlug);
+    try {
+      const res = await axios.get(`/api/certificates/${courseSlug}/download`, {
+        responseType: 'blob',
+      });
+      const url = window.URL.createObjectURL(new Blob([res.data], { type: 'application/pdf' }));
+      const link = document.createElement('a');
+      link.href = url;
+      const cert = courses.find(c => c.course?.slug === courseSlug)?.certificate;
+      link.download = cert
+        ? `Adyapan-Certificate-${cert.certificateId}.pdf`
+        : `Adyapan-Certificate-${courseSlug}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch {
+      alert('Failed to download certificate. Please try again.');
+    } finally {
+      setDownloading('');
+    }
+  };
+
+  const handleTemplateDownload = async (type: string, title: string) => {
+    setDownloading(`tpl-${type}`);
+    try {
+      const res = await axios.get(`/api/certificate-templates/${type}/download`, {
+        responseType: 'blob',
+      });
+      const url = window.URL.createObjectURL(new Blob([res.data], { type: 'image/png' }));
+      const link = document.createElement('a');
+      link.href = url;
+      const nameMap: Record<string, string> = {
+        best_performance:      'best-performance-certificate.png',
+        course_completion:     'course-completion-certificate.png',
+        internship_completion: 'internship-completion-certificate.png',
+        project_completion:    'project-completion-certificate.png',
+      };
+      link.download = nameMap[type] ?? `${type}-certificate.png`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch {
+      alert(`Failed to download "${title}". Please try again.`);
+    } finally {
+      setDownloading('');
+    }
   };
 
   /* ── Loading ── */
@@ -417,83 +649,310 @@ export default function StudentDashboard() {
         {/* ── Course grid ── */}
         {totalCourses > 0 && (
           <>
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-extrabold text-gray-900">My Courses</h2>
-              <Link href="/" className="text-xs text-[#ffa800] font-semibold hover:underline flex items-center gap-1">
-                Browse more <ChevronRight className="w-3.5 h-3.5" />
-              </Link>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-              {courses.map((item) => (
-                <CourseCard
-                  key={item.enrollment.id}
-                  item={item}
-                  onMarkLesson={handleMarkLesson}
-                  expandedSlug={expandedSlug}
-                  onToggleExpand={(slug) => setExpandedSlug(prev => prev === slug ? null : slug)}
-                />
+            {/* Tab bar */}
+            <div className="flex items-center gap-1 mb-6 bg-gray-100 rounded-2xl p-1 w-fit">
+              {(['courses', 'certificates'] as const).map((tab) => (
+                <button
+                  key={tab}
+                  onClick={() => setActiveTab(tab)}
+                  className={`px-5 py-2 rounded-xl text-sm font-bold transition-all capitalize ${
+                    activeTab === tab
+                      ? 'bg-white text-gray-900 shadow-sm'
+                      : 'text-gray-500 hover:text-gray-700'
+                  }`}
+                >
+                  {tab === 'courses' ? (
+                    <span className="flex items-center gap-1.5"><BookOpen className="w-3.5 h-3.5" /> My Courses</span>
+                  ) : (
+                    <span className="flex items-center gap-1.5"><GraduationCap className="w-3.5 h-3.5" /> Certificates</span>
+                  )}
+                </button>
               ))}
             </div>
 
-            {/* ── Overall progress summary ── */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4 }}
-              className="mt-8 bg-white rounded-2xl border border-gray-100 shadow-sm p-6"
-            >
-              <h3 className="font-extrabold text-gray-900 mb-4 flex items-center gap-2">
-                <Star className="w-4 h-4 text-[#ffa800]" /> Learning Summary
-              </h3>
-              <div className="space-y-4">
-                {courses.map((item) => {
-                  if (!item.course) return null;
-                  const pct = item.progress.progressPercent;
-                  return (
-                    <div key={item.enrollment.id}>
-                      <div className="flex items-center justify-between text-sm mb-1.5">
-                        <span className="font-semibold text-gray-700 truncate max-w-[60%]">{item.course.title}</span>
-                        <span className={`font-bold text-xs ${pct === 100 ? 'text-green-600' : 'text-[#ffa800]'}`}>
-                          {pct === 100 ? '✅ Complete' : `${pct}%`}
-                        </span>
-                      </div>
-                      <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-                        <motion.div
-                          className={`h-full rounded-full ${pct === 100 ? 'bg-green-500' : 'bg-gradient-to-r from-[#ffa800] to-[#ff6b00]'}`}
-                          initial={{ width: 0 }}
-                          animate={{ width: `${pct}%` }}
-                          transition={{ duration: 1.2, ease: 'easeOut', delay: 0.5 }}
-                        />
-                      </div>
-                      <p className="text-xs text-gray-400 mt-1">
-                        {item.progress.completedLessons.length} of {item.progress.totalLessons} lessons · {item.course.duration}
+            <AnimatePresence mode="wait">
+              {activeTab === 'courses' && (
+                <motion.div
+                  key="courses"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-lg font-extrabold text-gray-900">
+                      My Courses <span className="text-sm font-normal text-gray-400">({totalCourses})</span>
+                    </h2>
+                    <Link href="/#all-programs" className="text-xs text-[#ffa800] font-semibold hover:underline flex items-center gap-1">
+                      Browse more <ChevronRight className="w-3.5 h-3.5" />
+                    </Link>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                    {courses.map((item) => (
+                      <CourseCard
+                        key={item.enrollment.id}
+                        item={item}
+                        onMarkLesson={handleMarkLesson}
+                        expandedSlug={expandedSlug}
+                        onToggleExpand={(slug) => setExpandedSlug(prev => prev === slug ? null : slug)}
+                        onDownload={handleDownload}
+                        downloading={downloading}
+                      />
+                    ))}
+                  </div>
+
+                  {/* Learning Summary */}
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.3 }}
+                    className="mt-8 bg-white rounded-2xl border border-gray-100 shadow-sm p-6"
+                  >
+                    <h3 className="font-extrabold text-gray-900 mb-4 flex items-center gap-2">
+                      <Star className="w-4 h-4 text-[#ffa800]" /> Learning Summary
+                    </h3>
+                    <div className="space-y-5">
+                      {courses.map((item) => {
+                        if (!item.course) return null;
+                        const pct = item.progress.progressPercent;
+                        const isComplete = item.progress.isComplete || pct === 100;
+                        return (
+                          <div key={item.enrollment.id}>
+                            <div className="flex items-center justify-between text-sm mb-1.5">
+                              <span className="font-semibold text-gray-700 truncate max-w-[60%]">{item.course.title}</span>
+                              <span className={`font-bold text-xs ${isComplete ? 'text-green-600' : 'text-[#ffa800]'}`}>
+                                {isComplete ? '✅ Complete' : `${pct}%`}
+                              </span>
+                            </div>
+                            <div className="h-2.5 bg-gray-100 rounded-full overflow-hidden">
+                              <motion.div
+                                className={`h-full rounded-full ${isComplete ? 'bg-green-500' : 'bg-gradient-to-r from-[#ffa800] to-[#ff6b00]'}`}
+                                initial={{ width: 0 }}
+                                animate={{ width: `${pct}%` }}
+                                transition={{ duration: 1.2, ease: 'easeOut', delay: 0.4 }}
+                              />
+                            </div>
+                            <div className="flex items-center justify-between mt-1">
+                              <p className="text-xs text-gray-400">
+                                {item.progress.completedLessons.length} of {item.progress.totalLessons} lessons · {item.course.duration}
+                              </p>
+                              {isComplete && (
+                                <span className="text-xs text-green-600 font-semibold flex items-center gap-1">
+                                  <Trophy className="w-3 h-3" /> Certificate earned
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </motion.div>
+                </motion.div>
+              )}
+
+              {activeTab === 'certificates' && (
+                <motion.div
+                  key="certificates"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  {/* ── Earned Certificates ── */}
+                  <div className="mb-6">
+                    <h2 className="text-lg font-extrabold text-gray-900 mb-1">My Earned Certificates</h2>
+                    <p className="text-sm text-gray-500">
+                      Complete a course to earn and download your certificate.
+                    </p>
+                  </div>
+
+                  {completedCourses === 0 && (
+                    <div className="flex items-start gap-3 bg-amber-50 border border-amber-200 rounded-2xl p-4 mb-6">
+                      <AlertCircle className="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" />
+                      <p className="text-sm text-amber-700">
+                        You haven't completed any courses yet. Keep learning — certificates unlock automatically when you finish all lessons.
                       </p>
                     </div>
-                  );
-                })}
-              </div>
-            </motion.div>
+                  )}
+
+                  {courses.length > 0 && (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 mb-10">
+                      {courses.map((item) => (
+                        <CertificateCard
+                          key={item.enrollment.id}
+                          item={item}
+                          onDownload={handleDownload}
+                          downloading={downloading}
+                        />
+                      ))}
+                    </div>
+                  )}
+
+                  {/* ── Certificate Templates ── */}
+                  <div className="mb-4">
+                    <h2 className="text-lg font-extrabold text-gray-900 mb-1 flex items-center gap-2">
+                      <GraduationCap className="w-5 h-5 text-[#ffa800]" />
+                      Certificate Templates
+                    </h2>
+                    <p className="text-sm text-gray-500">
+                      Official Adyapan Skills certificate templates. Preview and download.
+                    </p>
+                  </div>
+
+                  {templatesLoading ? (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+                      {[1, 2, 3, 4].map(i => (
+                        <div key={i} className="rounded-2xl border border-gray-100 bg-gray-50 animate-pulse h-64" />
+                      ))}
+                    </div>
+                  ) : templates.length === 0 ? (
+                    <div className="text-center py-10 bg-gray-50 rounded-2xl border border-gray-100">
+                      <p className="text-gray-400 text-sm">No certificate templates found. Run <code className="bg-gray-100 px-1.5 py-0.5 rounded text-xs">npm run seed:certificates</code> to add them.</p>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5">
+                      {templates.map((tpl) => {
+                        const isDownloading = downloading === `tpl-${tpl.type}`;
+                        return (
+                          <motion.div
+                            key={tpl.id}
+                            initial={{ opacity: 0, y: 16 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-md transition-shadow group"
+                          >
+                            {/* Image preview */}
+                            <div className="relative h-44 overflow-hidden bg-gray-50 cursor-pointer" onClick={() => setPreviewTemplate(tpl)}>
+                              <img
+                                src={tpl.imageUrl}
+                                alt={tpl.title}
+                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                              />
+                              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
+                                <div className="opacity-0 group-hover:opacity-100 transition-opacity bg-white/90 rounded-full p-2.5">
+                                  <Eye className="w-5 h-5 text-gray-700" />
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Card body */}
+                            <div className="p-4">
+                              <h4 className="font-bold text-gray-900 text-sm mb-3 leading-tight">{tpl.title}</h4>
+                              <div className="flex gap-2">
+                                <button
+                                  onClick={() => setPreviewTemplate(tpl)}
+                                  className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl border border-gray-200 text-gray-600 text-xs font-semibold hover:bg-gray-50 transition-colors"
+                                >
+                                  <Eye className="w-3.5 h-3.5" /> Preview
+                                </button>
+                                <button
+                                  onClick={() => handleTemplateDownload(tpl.type, tpl.title)}
+                                  disabled={isDownloading}
+                                  className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-white text-xs font-bold transition-colors disabled:opacity-60"
+                                  style={{ background: 'linear-gradient(135deg,#ffa800,#ff6b00)' }}
+                                >
+                                  {isDownloading ? (
+                                    <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                  ) : (
+                                    <Download className="w-3.5 h-3.5" />
+                                  )}
+                                  {isDownloading ? 'Saving…' : 'Download'}
+                                </button>
+                              </div>
+                            </div>
+                          </motion.div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* ── Image Preview Modal ── */}
+            <AnimatePresence>
+              {previewTemplate && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4"
+                  onClick={() => setPreviewTemplate(null)}
+                >
+                  <motion.div
+                    initial={{ scale: 0.9, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    exit={{ scale: 0.9, opacity: 0 }}
+                    transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+                    className="bg-white rounded-2xl overflow-hidden shadow-2xl max-w-3xl w-full"
+                    onClick={e => e.stopPropagation()}
+                  >
+                    <div className="flex items-center justify-between px-5 py-3 border-b border-gray-100">
+                      <h3 className="font-bold text-gray-900 text-sm">{previewTemplate.title}</h3>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => handleTemplateDownload(previewTemplate.type, previewTemplate.title)}
+                          disabled={downloading === `tpl-${previewTemplate.type}`}
+                          className="flex items-center gap-1.5 px-4 py-1.5 rounded-xl text-white text-xs font-bold disabled:opacity-60"
+                          style={{ background: 'linear-gradient(135deg,#ffa800,#ff6b00)' }}
+                        >
+                          <Download className="w-3.5 h-3.5" />
+                          {downloading === `tpl-${previewTemplate.type}` ? 'Downloading…' : 'Download'}
+                        </button>
+                        <button
+                          onClick={() => setPreviewTemplate(null)}
+                          className="w-7 h-7 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-500 text-lg font-bold transition-colors"
+                        >
+                          ×
+                        </button>
+                      </div>
+                    </div>
+                    <img
+                      src={previewTemplate.imageUrl}
+                      alt={previewTemplate.title}
+                      className="w-full object-contain max-h-[70vh]"
+                    />
+                  </motion.div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </>
         )}
 
         {/* ── Quick links ── */}
-        <div className="mt-6 grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div className="mt-8 grid grid-cols-2 sm:grid-cols-4 gap-3">
           {[
-            { label: 'Browse Programs', href: '/', icon: BookOpen, color: 'text-blue-600 bg-blue-50 border-blue-100' },
-            { label: 'My Profile',      href: '/auth',     icon: Award,    color: 'text-purple-600 bg-purple-50 border-purple-100' },
-            { label: 'Certificates',    href: '#',         icon: Award,    color: 'text-green-600 bg-green-50 border-green-100' },
-            { label: 'Support',         href: 'mailto:support@adyapan.com', icon: Zap, color: 'text-[#ffa800] bg-amber-50 border-amber-100' },
-          ].map(({ label, href, icon: Icon, color }) => (
-            <Link
-              key={label}
-              href={href}
-              className={`flex items-center gap-2.5 px-4 py-3 rounded-xl border text-sm font-semibold transition-all hover:shadow-sm ${color}`}
-            >
-              <Icon className="w-4 h-4 flex-shrink-0" />
-              <span className="truncate">{label}</span>
-            </Link>
-          ))}
+            { label: 'Browse Programs', href: '/#all-programs', icon: BookOpen, color: 'text-blue-600 bg-blue-50 border-blue-100' },
+            { label: 'My Profile',      href: '/auth',          icon: Award,    color: 'text-purple-600 bg-purple-50 border-purple-100' },
+            {
+              label: 'Certificates',
+              href: '#',
+              icon: GraduationCap,
+              color: 'text-green-600 bg-green-50 border-green-100',
+              onClick: () => setActiveTab('certificates'),
+            },
+            { label: 'Support', href: 'mailto:support@adyapan.com', icon: Zap, color: 'text-[#ffa800] bg-amber-50 border-amber-100' },
+          ].map(({ label, href, icon: Icon, color, onClick }) =>
+            onClick ? (
+              <button
+                key={label}
+                onClick={onClick}
+                className={`flex items-center gap-2.5 px-4 py-3 rounded-xl border text-sm font-semibold transition-all hover:shadow-sm ${color}`}
+              >
+                <Icon className="w-4 h-4 flex-shrink-0" />
+                <span className="truncate">{label}</span>
+              </button>
+            ) : (
+              <Link
+                key={label}
+                href={href}
+                className={`flex items-center gap-2.5 px-4 py-3 rounded-xl border text-sm font-semibold transition-all hover:shadow-sm ${color}`}
+              >
+                <Icon className="w-4 h-4 flex-shrink-0" />
+                <span className="truncate">{label}</span>
+              </Link>
+            )
+          )}
         </div>
 
       </div>

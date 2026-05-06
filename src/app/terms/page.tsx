@@ -112,7 +112,11 @@ export default function TermsOfService() {
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mb-10">
           <Link href="/" className="text-sm text-orange-500 hover:underline mb-4 inline-block">← Back to Home</Link>
           <div className="flex items-center gap-3 mb-3">
-            <span className="text-3xl">📋</span>
+            <div className="w-10 h-10 rounded-xl bg-orange-100 border-2 border-orange-200 flex items-center justify-center flex-shrink-0">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#f97316" strokeWidth="2" className="w-6 h-6">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+            </div>
             <h1 className="text-3xl font-extrabold text-gray-900">Terms of Service</h1>
           </div>
           <p className="text-gray-500 text-sm">Last updated: May 2026 · Effective: May 1, 2026</p>
