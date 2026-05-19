@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useRouter } from 'next/navigation';
 import ProfileDropdown from './ProfileDropdown';
 
 interface NavUser {
@@ -14,11 +15,23 @@ interface NavUser {
 }
 
 const Navbar = () => {
+  const router = useRouter();
   const [active, setActive] = useState('');
   const [showPrograms, setShowPrograms] = useState(false);
+  const [showCertifications, setShowCertifications] = useState(false);
   const [showMobile, setShowMobile] = useState(false);
   const [user, setUser] = useState<NavUser | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const certificationRef = useRef<HTMLDivElement>(null);
+
+  // Function to generate slug from certification name
+  const generateSlug = (certificationName: string) => {
+    return certificationName.toLowerCase()
+      .replace(/[^a-z0-9\s-]/g, '')
+      .replace(/\s+/g, '-')
+      .replace(/-+/g, '-')
+      .trim();
+  };
 
   /* ── Fetch current user on mount ── */
   useEffect(() => {
@@ -38,7 +51,7 @@ const Navbar = () => {
 
   const links = [
     { label: 'Home',              href: '/' },
-    { label: 'Assessment',        href: '/assessment' },
+    { label: 'Offline Services',  href: '/offline-services' },
     { label: 'About Us',          href: '/about' },
     { label: 'Our Gallery',       href: '/gallery' },
     { label: 'Campus Ambassador', href: '/campus-ambassador' },
@@ -138,10 +151,193 @@ const Navbar = () => {
 
   const [selectedCategory, setSelectedCategory] = useState('CSE / IT DOMAINS');
 
-  /* ── Close programs dropdown on outside click ── */
+  // Certification Companies Data
+  const certificationCompanies = [
+    {
+      id: 1,
+      name: 'Adobe',
+      logo: '/company-logos/Adobe_Corporate_wordmark.svg.png',
+      certifications: [
+        'Adobe Certified Professional - Photoshop',
+        'Adobe Certified Professional - Illustrator',
+        'Adobe Certified Professional - InDesign',
+        'Adobe Certified Professional - After Effects',
+        'Adobe Certified Professional - Premiere Pro',
+        'Adobe Certified Professional - Animate',
+        'Adobe Certified Professional - Dreamweaver'
+      ]
+    },
+    {
+      id: 2,
+      name: 'Apple',
+      logo: '/company-logos/applelogo.jpg',
+      certifications: [
+        'App Development with Swift - Certified User',
+        'App Development with Swift - Associate'
+      ]
+    },
+    {
+      id: 3,
+      name: 'Autodesk',
+      logo: '/company-logos/autodesklogo.jpg',
+      certifications: [
+        'Autodesk Certified User - AutoCAD',
+        'Autodesk Certified User - Fusion 360',
+        'Autodesk Certified User - Inventor',
+        'Autodesk Certified User - Revit Architecture',
+        'Autodesk Certified User - 3ds Max',
+        'Autodesk Certified User - Maya',
+        'Autodesk Certified User - Tinkercad 3D Design'
+      ]
+    },
+    {
+      id: 4,
+      name: 'Cisco',
+      logo: '/company-logos/ciscologo.jpg',
+      certifications: [
+        'Cisco Certified Support Technician - Networking',
+        'Cisco Certified Support Technician - Cybersecurity'
+      ]
+    },
+    {
+      id: 5,
+      name: 'Communication Skills for Business',
+      logo: '/company-logos/communicationskillsforbusinesslogo.png',
+      certifications: [
+        'CSB - Professional Communication',
+        'CSB - English for IT'
+      ]
+    },
+    {
+      id: 6,
+      name: 'ESB',
+      logo: '/company-logos/project-management-institutelol.svg',
+      certifications: [
+        'ESB v.2'
+      ]
+    },
+    {
+      id: 7,
+      name: 'IC3 Digital Literacy',
+      logo: '/company-logos/IC3logo.webp',
+      certifications: [
+        'IC3 Digital Literacy - Global Standard 6',
+        'IC3 Digital Literacy - Global Standard 5',
+        'IC3 - Spark',
+        'IC3 - Fast Track',
+        'IC - PHP Developer Fundamentals'
+      ]
+    },
+    {
+      id: 8,
+      name: 'Information Technology Specialist',
+      logo: '/company-logos/informationtechnologyspecialist.png',
+      certifications: [
+        'Artificial Intelligence',
+        'Cloud Computing',
+        'Computational Thinking',
+        'Cybersecurity',
+        'Data Analytics',
+        'Databases',
+        'Device Configuration and Management',
+        'HTML and CSS',
+        'HTML5 Application Development',
+        'Java',
+        'JavaScript',
+        'Networking',
+        'Network Security',
+        'Python',
+        'Software Development'
+      ]
+    },
+    {
+      id: 9,
+      name: 'Intuit',
+      logo: '/company-logos/intuit-logo-chief-executive-management-idlogo.jpg',
+      certifications: [
+        'Intuit - QuickBooks Certified User Online',
+        'Intuit - Design for Delight Innovator',
+        'Intuit - Certified Bookkeeping Professional'
+      ]
+    },
+    {
+      id: 10,
+      name: 'Microsoft Certified Fundamentals',
+      logo: '/company-logos/microsoftcertifiedfundamentalslogo.png',
+      certifications: [
+        'Microsoft Azure Fundamentals (AZ-900)',
+        'Microsoft 365 Fundamentals (MS-900)',
+        'Microsoft Azure AI Fundamentals (AI-900)',
+        'Microsoft Azure Data Fundamentals (DP-900)',
+        'Microsoft Power Platform Fundamentals (PL-900)',
+        'Microsoft Dynamics 365 Fundamentals CRM (MB-910)',
+        'Microsoft Dynamics 365 Fundamentals ERP (MB-920)',
+        'Microsoft Security, Compliance, and Identity Fundamentals (SC-900)'
+      ]
+    },
+    {
+      id: 11,
+      name: 'Microsoft Office Specialist',
+      logo: '/company-logos/microsoft-office-specialist-microsoft-officelogo.png',
+      certifications: [
+        'MOS - Word',
+        'MOS - Excel',
+        'MOS - PowerPoint',
+        'MOS - Word Expert',
+        'MOS - Excel Expert'
+      ]
+    },
+    {
+      id: 12,
+      name: 'Microsoft Certified Educator',
+      logo: '/company-logos/MicrosoftCertifiedEducator_Logo.jpg',
+      certifications: [
+        'Technology Literacy for Educators (62-193)'
+      ]
+    },
+    {
+      id: 13,
+      name: 'PMI Project Management Institute',
+      logo: '/company-logos/project-management-institutelol.svg',
+      certifications: [
+        'PMI - Project Management Ready™'
+      ]
+    },
+    {
+      id: 14,
+      name: 'Unity',
+      logo: '/company-logos/unitylogo.png',
+      certifications: [
+        'Unity Certified User: Programmer',
+        'Unity Certified User: VR Developer',
+        'Unity Certified User: Artist'
+      ]
+    },
+    {
+      id: 15,
+      name: 'Meta',
+      logo: '/company-logos/Meta-Logo.png',
+      certifications: [
+        'Meta Certified: Digital Marketing Associate'
+      ]
+    },
+    {
+      id: 16,
+      name: 'Critical Career Skills',
+      logo: '/company-logos/criticalcareerskillsLOGO.webp',
+      certifications: [
+        'CCS Generative AI Foundations'
+      ]
+    }
+  ];
+
+  const [selectedCompany, setSelectedCompany] = useState(certificationCompanies[0]);
+
+  /* ── Close dropdowns on outside click ── */
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) setShowPrograms(false);
+      if (certificationRef.current && !certificationRef.current.contains(e.target as Node)) setShowCertifications(false);
     };
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
@@ -159,17 +355,17 @@ const Navbar = () => {
         WebkitBackdropFilter: 'blur(18px) saturate(1.5)',
       }}
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-2">
+      <div className="max-w-7xl mx-auto px-6 h-16 flex items-center gap-6">
 
         {/* Logo */}
-        <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.97 }}>
+        <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.97 }} className="flex-shrink-0">
           <Link href="/" className="flex items-center space-x-2.5">
-            <img src="/adyapan-logo.png" alt="Adyapan" className="h-10 w-auto" />
+            <img src="/adyapan-logo.png" alt="Adyapan Logo" className="h-8 sm:h-10 w-auto" />
           </Link>
         </motion.div>
 
         {/* All Programs dropdown */}
-        <div className="relative" ref={dropdownRef}>
+        <div className="relative flex-shrink-0" ref={dropdownRef}>
           <motion.button
             onClick={() => setShowPrograms(!showPrograms)}
             whileHover={{ scale: 1.05 }}
@@ -189,9 +385,9 @@ const Navbar = () => {
                 transition={{ duration: 0.2 }}
                 className="absolute top-full left-0 mt-2 bg-white rounded-2xl shadow-2xl p-4 sm:p-6 w-[95vw] sm:w-[600px] lg:w-[1000px] max-w-[1000px] z-50"
               >
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
                   {/* Categories */}
-                  <div className="col-span-1 border-b sm:border-b-0 sm:border-r border-gray-200 pb-3 sm:pb-0 sm:pr-4 max-h-[240px] sm:max-h-[500px] overflow-y-auto">
+                  <div className="col-span-1 lg:border-r border-gray-200 lg:pr-4 max-h-[300px] lg:max-h-[500px] overflow-y-auto">
                     <div className="space-y-2">
                       {categories.map((cat, i) => (
                         <motion.button
@@ -215,8 +411,8 @@ const Navbar = () => {
                   </div>
 
                   {/* Courses grid */}
-                  <div className="sm:col-span-1 lg:col-span-2 max-h-[300px] sm:max-h-[500px] overflow-y-auto">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                  <div className="col-span-1 lg:col-span-2 max-h-[300px] lg:max-h-[500px] overflow-y-auto">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 lg:gap-4">
                       {(coursesByCategory[selectedCategory] || []).map((course, i) => {
                         const slug = course.name.toLowerCase()
                           .replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-').trim();
@@ -255,8 +451,125 @@ const Navbar = () => {
           </AnimatePresence>
         </div>
 
+        {/* Get Certification dropdown */}
+        <div className="relative flex-shrink-0" ref={certificationRef}>
+          <motion.button
+            onClick={() => setShowCertifications(!showCertifications)}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            className="flex items-center space-x-2 px-4 py-1.5 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-full text-sm font-semibold hover:from-orange-600 hover:to-orange-700 transition-all shadow-lg"
+          >
+            <span>🎓</span>
+            <span>Get Certification</span>
+          </motion.button>
+
+          <AnimatePresence>
+            {showCertifications && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.2 }}
+                className="absolute top-full left-0 mt-2 bg-white rounded-2xl shadow-2xl p-4 sm:p-6 w-[95vw] sm:w-[600px] lg:w-[1000px] max-w-[1000px] z-50"
+              >
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
+                  {/* Companies List */}
+                  <div className="lg:border-r border-gray-200 lg:pr-6">
+                    <h3 className="font-bold text-lg text-gray-800 mb-4">Certification Partners</h3>
+                    <div className="space-y-2 max-h-[400px] overflow-y-auto">
+                      {certificationCompanies.map((company, i) => (
+                        <motion.button
+                          key={company.id}
+                          onClick={() => setSelectedCompany(company)}
+                          initial={{ opacity: 0, x: -10 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: i * 0.03 }}
+                          className={`w-full text-left flex items-center space-x-3 p-3 rounded-lg transition-all ${
+                            selectedCompany.id === company.id ? 'bg-orange-50 border-2 border-orange-200' : 'hover:bg-gray-50 border-2 border-transparent'
+                          }`}
+                        >
+                          <div className="flex-shrink-0 w-12 h-12 bg-white rounded-lg border border-gray-200 flex items-center justify-center p-1">
+                            <img
+                              src={company.logo}
+                              alt={company.name}
+                              className="max-w-full max-h-full object-contain"
+                              onError={(e) => {
+                                const target = e.target as HTMLImageElement;
+                                target.style.display = 'none';
+                                const parent = target.parentElement;
+                                if (parent) {
+                                  parent.innerHTML = `<div class="text-xs font-bold text-gray-600 text-center">${company.name.substring(0, 3)}</div>`;
+                                }
+                              }}
+                            />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="font-semibold text-sm text-gray-800 truncate">{company.name}</div>
+                            <div className="text-xs text-gray-500">{company.certifications.length} Certifications</div>
+                          </div>
+                          <span className={`text-sm ${selectedCompany.id === company.id ? 'text-orange-500' : 'text-gray-400'}`}>›</span>
+                        </motion.button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Certifications List */}
+                  <div>
+                    <div className="flex items-center space-x-3 mb-4">
+                      <div className="w-8 h-8 bg-white rounded-lg border border-gray-200 flex items-center justify-center p-1">
+                        <img
+                          src={selectedCompany.logo}
+                          alt={selectedCompany.name}
+                          className="max-w-full max-h-full object-contain"
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement;
+                            target.style.display = 'none';
+                            const parent = target.parentElement;
+                            if (parent) {
+                              parent.innerHTML = `<div class="text-xs font-bold text-gray-600">${selectedCompany.name.substring(0, 2)}</div>`;
+                            }
+                          }}
+                        />
+                      </div>
+                      <h3 className="font-bold text-lg text-gray-800">{selectedCompany.name}</h3>
+                    </div>
+                    <div className="space-y-2 max-h-[350px] overflow-y-auto">
+                      {selectedCompany.certifications.map((cert, i) => (
+                        <motion.div
+                          key={i}
+                          initial={{ opacity: 0, y: 5 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: i * 0.05 }}
+                          className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-orange-50 transition-colors group"
+                        >
+                          <div className="flex items-center space-x-3 flex-1">
+                            <div className="w-2 h-2 bg-orange-400 rounded-full" />
+                            <span className="text-sm font-medium text-gray-700 group-hover:text-orange-700">{cert}</span>
+                          </div>
+                          <motion.button
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                            className="px-3 py-1 bg-orange-500 text-white text-xs font-semibold rounded-full hover:bg-orange-600 transition-colors"
+                            onClick={() => {
+                              setShowCertifications(false);
+                              const slug = generateSlug(cert);
+                              router.push(`/certification/${slug}`);
+                            }}
+                          >
+                            Enroll
+                          </motion.button>
+                        </motion.div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+
         {/* Nav links */}
-        <div className="hidden md:flex items-center space-x-6">
+        <div className="hidden md:flex items-center gap-5 flex-1">
           {links.map((l, i) => (
             <motion.div
               key={l.label}
@@ -267,7 +580,7 @@ const Navbar = () => {
               <Link
                 href={l.href}
                 onClick={() => setActive(l.label)}
-                className={`text-sm font-medium transition-colors relative group ${
+                className={`text-sm font-medium transition-colors relative group whitespace-nowrap ${
                   active === l.label ? 'text-[#ffa800]' : 'text-white hover:text-[#ffa800]'
                 }`}
               >
@@ -279,7 +592,7 @@ const Navbar = () => {
             </motion.div>
           ))}
 
-          {/* For Companies button */}
+          {/* Recruiter button */}
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -287,21 +600,21 @@ const Navbar = () => {
           >
             <Link
               href="/company"
-              onClick={() => setActive('For Companies')}
-              className={`text-sm font-semibold px-4 py-1.5 rounded-full border transition-all ${
-                active === 'For Companies'
+              onClick={() => setActive('Recruiter')}
+              className={`text-sm font-semibold px-4 py-1.5 rounded-full border transition-all whitespace-nowrap ${
+                active === 'Recruiter'
                   ? 'bg-[#ffa800] text-white border-[#ffa800]'
                   : 'border-[#ffa800] text-[#ffa800] hover:bg-[#ffa800] hover:text-white'
               }`}
             >
-              For Companies
+              Recruiter
             </Link>
           </motion.div>
         </div>
 
         {/* Actions */}
         <motion.div
-          className="flex items-center space-x-3"
+          className="flex items-center gap-3 flex-shrink-0 ml-auto"
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.3, duration: 0.5 }}
@@ -365,10 +678,10 @@ const Navbar = () => {
               ))}
               <Link
                 href="/company"
-                onClick={() => { setActive('For Companies'); setShowMobile(false); }}
+                onClick={() => { setActive('Recruiter'); setShowMobile(false); }}
                 className="text-sm font-semibold py-2 text-[#ffa800] hover:text-white transition-colors"
               >
-                For Companies
+                Recruiter
               </Link>
               <div className="border-t border-white/10 pt-3 flex gap-3">
                 {user ? (

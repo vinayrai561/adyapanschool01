@@ -6,6 +6,339 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ── Global Responsive Utilities ── */
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+  
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  
+  /* Ensure proper touch targets on mobile */
+  button, a, [role="button"] {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  /* Responsive text scaling */
+  .text-responsive-xs { font-size: clamp(0.75rem, 2vw, 0.875rem); }
+  .text-responsive-sm { font-size: clamp(0.875rem, 2.5vw, 1rem); }
+  .text-responsive-base { font-size: clamp(1rem, 3vw, 1.125rem); }
+  .text-responsive-lg { font-size: clamp(1.125rem, 3.5vw, 1.25rem); }
+  .text-responsive-xl { font-size: clamp(1.25rem, 4vw, 1.5rem); }
+  .text-responsive-2xl { font-size: clamp(1.5rem, 5vw, 2rem); }
+  .text-responsive-3xl { font-size: clamp(2rem, 6vw, 3rem); }
+  .text-responsive-4xl { font-size: clamp(2.5rem, 7vw, 4rem); }
+  .text-responsive-5xl { font-size: clamp(3rem, 8vw, 5rem); }
+}
+
+@layer components {
+  /* ── Responsive Container Utilities ── */
+  .container-responsive {
+    @apply w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+  
+  .container-narrow {
+    @apply w-full max-w-4xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+  
+  /* ── Responsive Grid Utilities ── */
+  .grid-responsive-1-2 {
+    @apply grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 lg:gap-8;
+  }
+  
+  .grid-responsive-1-2-3 {
+    @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8;
+  }
+  
+  .grid-responsive-1-2-4 {
+    @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-8;
+  }
+  
+  /* ── Responsive Spacing Utilities ── */
+  .space-responsive-sm {
+    @apply space-y-4 sm:space-y-6 lg:space-y-8;
+  }
+  
+  .space-responsive-md {
+    @apply space-y-6 sm:space-y-8 lg:space-y-12;
+  }
+  
+  .space-responsive-lg {
+    @apply space-y-8 sm:space-y-12 lg:space-y-16;
+  }
+  
+  /* ── Responsive Padding Utilities ── */
+  .padding-responsive-sm {
+    @apply p-4 sm:p-6 lg:p-8;
+  }
+  
+  .padding-responsive-md {
+    @apply p-6 sm:p-8 lg:p-12;
+  }
+  
+  .padding-responsive-lg {
+    @apply p-8 sm:p-12 lg:p-16;
+  }
+  
+  /* ── Responsive Button Utilities ── */
+  .btn-responsive {
+    @apply px-4 sm:px-6 lg:px-8 py-3 sm:py-4 text-sm sm:text-base font-semibold rounded-lg sm:rounded-xl transition-all;
+  }
+  
+  .btn-responsive-lg {
+    @apply px-6 sm:px-8 lg:px-10 py-4 sm:py-5 text-base sm:text-lg font-bold rounded-xl sm:rounded-2xl transition-all;
+  }
+  
+  /* ── Responsive Card Utilities ── */
+  .card-responsive {
+    @apply bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 shadow-lg border border-gray-200;
+  }
+  
+  .card-responsive-lg {
+    @apply bg-white rounded-2xl sm:rounded-3xl p-6 sm:p-8 lg:p-12 shadow-xl border border-gray-200;
+  }
+  
+  /* ── Responsive Modal Utilities ── */
+  .modal-responsive {
+    @apply w-[95vw] sm:w-[600px] lg:w-[800px] max-w-[95vw] mx-4 sm:mx-auto;
+  }
+  
+  .modal-responsive-lg {
+    @apply w-[95vw] sm:w-[700px] lg:w-[1000px] max-w-[95vw] mx-4 sm:mx-auto;
+  }
+  
+  /* ── Responsive Dropdown Utilities ── */
+  .dropdown-responsive {
+    @apply w-[95vw] sm:w-[500px] lg:w-[700px] max-w-[95vw];
+  }
+  
+  .dropdown-responsive-lg {
+    @apply w-[95vw] sm:w-[600px] lg:w-[1000px] max-w-[95vw];
+  }
+}
+
+@layer utilities {
+  /* ── Mobile-First Responsive Utilities ── */
+  .safe-area-inset {
+    padding-left: max(1rem, env(safe-area-inset-left));
+    padding-right: max(1rem, env(safe-area-inset-right));
+    padding-top: max(1rem, env(safe-area-inset-top));
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
+  }
+  
+  /* ── Responsive Image Utilities ── */
+  .img-responsive {
+    @apply w-full h-auto object-cover;
+  }
+  
+  .img-responsive-contain {
+    @apply w-full h-auto object-contain;
+  }
+  
+  /* ── Responsive Video Utilities ── */
+  .video-responsive {
+    @apply w-full h-auto;
+    aspect-ratio: 16/9;
+  }
+  
+  .video-responsive-square {
+    @apply w-full h-auto;
+    aspect-ratio: 1/1;
+  }
+  
+  .video-responsive-portrait {
+    @apply w-full h-auto;
+    aspect-ratio: 9/16;
+  }
+  
+  /* ── Responsive Typography Utilities ── */
+  .text-balance {
+    text-wrap: balance;
+  }
+  
+  .text-pretty {
+    text-wrap: pretty;
+  }
+  
+  /* ── Responsive Flex Utilities ── */
+  .flex-responsive-center {
+    @apply flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6;
+  }
+  
+  .flex-responsive-between {
+    @apply flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 sm:gap-6;
+  }
+  
+  /* ── Responsive Animation Utilities ── */
+  .animate-responsive {
+    @apply transition-all duration-300 ease-in-out;
+  }
+  
+  .hover-lift {
+    @apply hover:scale-105 hover:-translate-y-1 transition-transform duration-200;
+  }
+  
+  /* ── Responsive Scroll Utilities ── */
+  .scroll-smooth {
+    scroll-behavior: smooth;
+  }
+  
+  .scroll-snap-x {
+    scroll-snap-type: x mandatory;
+  }
+  
+  .scroll-snap-y {
+    scroll-snap-type: y mandatory;
+  }
+  
+  .scroll-snap-start {
+    scroll-snap-align: start;
+  }
+  
+  .scroll-snap-center {
+    scroll-snap-align: center;
+  }
+}
+
+/* ── Device-Specific Optimizations ── */
+@media (max-width: 640px) {
+  /* Mobile optimizations */
+  .mobile-optimized {
+    font-size: 16px; /* Prevent zoom on iOS */
+  }
+  
+  /* Ensure dropdowns don't exceed viewport */
+  .dropdown-mobile {
+    left: 0 !important;
+    right: 0 !important;
+    width: 100vw !important;
+    max-width: 100vw !important;
+    margin-left: -1rem !important;
+    margin-right: -1rem !important;
+  }
+}
+
+@media (min-width: 641px) and (max-width: 1024px) {
+  /* Tablet optimizations */
+  .tablet-optimized {
+    /* Tablet-specific styles */
+  }
+}
+
+@media (min-width: 1025px) {
+  /* Desktop optimizations */
+  .desktop-optimized {
+    /* Desktop-specific styles */
+  }
+}
+
+/* ── Print Styles ── */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  
+  .print-only {
+    display: block !important;
+  }
+}
+
+/* ── Reduced Motion Support ── */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ── High Contrast Support ── */
+@media (prefers-contrast: high) {
+  .high-contrast {
+    border: 2px solid currentColor;
+  }
+}
+
+/* ── Dark Mode Support ── */
+@media (prefers-color-scheme: dark) {
+  .dark-mode-auto {
+    /* Auto dark mode styles */
+  }
+}
+
+/* Custom 3D and Cinematic Effects */
+@layer utilities {
+  .perspective-1000 {
+    perspective: 1000px;
+  }
+  
+  .preserve-3d {
+    transform-style: preserve-3d;
+  }
+  
+  .bg-gradient-radial {
+    background: radial-gradient(circle, var(--tw-gradient-stops));
+  }
+  
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  
+  /* Glassmorphism backdrop blur enhancement */
+  .backdrop-blur-xl {
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+  }
+  
+  /* Custom scrollbar */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  
+  /* Cinematic glow effects */
+  .glow-orange {
+    box-shadow: 0 0 20px rgba(249, 115, 22, 0.5);
+  }
+  
+  .glow-purple {
+    box-shadow: 0 0 20px rgba(147, 51, 234, 0.5);
+  }
+  
+  /* Noise texture animation */
+  @keyframes noise {
+    0%, 100% { transform: translate(0, 0); }
+    10% { transform: translate(-5%, -5%); }
+    20% { transform: translate(-10%, 5%); }
+    30% { transform: translate(5%, -10%); }
+    40% { transform: translate(-5%, 15%); }
+    50% { transform: translate(-10%, 5%); }
+    60% { transform: translate(15%, 0%); }
+    70% { transform: translate(0%, 10%); }
+    80% { transform: translate(-15%, 0%); }
+    90% { transform: translate(10%, 5%); }
+  }
+  
+  .animate-noise {
+    animation: noise 8s steps(10) infinite;
+  }
+}
+
 /* ─── Base ───────────────────────────────────────────────────── */
 @layer base {
   * {
@@ -86,6 +419,31 @@ body::after {
 }
 .bob-fast {
   animation: sine-bob 2.8s cubic-bezier(0.37, 0, 0.63, 1) infinite;
+}
+
+/* ─── Marquee banner ─────────────────────────────────────────── */
+@keyframes marquee-scroll {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+
+.marquee-track {
+  animation: marquee-scroll var(--marquee-speed, 30s) linear infinite;
+  will-change: transform;
+}
+
+/* Pause on hover for pointer devices */
+@media (hover: hover) {
+  .marquee-container:hover .marquee-track {
+    animation-play-state: paused;
+  }
+}
+
+/* Respect reduced-motion preference */
+@media (prefers-reduced-motion: reduce) {
+  .marquee-track {
+    animation: none;
+  }
 }
 
 /* ─── Components ─────────────────────────────────────────────── */

@@ -80,12 +80,7 @@ src/
    cp .env.example .env.local
    ```
    
-   Update `.env.local` with your configuration:
-   ```env
-   JWT_SECRET=your-super-secret-jwt-key
-   DATABASE_URL=your-database-connection-string
-   NEXTAUTH_SECRET=your-nextauth-secret
-   ```
+   Update `.env.local` with real values from your deployment providers. Do not commit real secrets.
 
 4. **Run the development server**
    ```bash
@@ -188,6 +183,22 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 For any inquiries about this project:
 - Website: [Adyapan EdTech Platform](https://your-domain.com)
 - Email: contact@adyapan.com
+
+## Security Setup Before Deployment
+
+Copy `.env.example` to `.env.local` for local development and configure matching environment variables in your production host. Use real values only in environment settings, never in Git.
+
+Required production values include `MONGODB_URI`, `JWT_SECRET`, `COOKIE_SECRET`, `ADMIN_EMAIL`, `ADMIN_ACCESS_KEY`, Razorpay keys, email credentials, Cloudinary keys, and Cloudflare Turnstile keys if CAPTCHA is enabled.
+
+Admin access is restricted to `/admin/login` and requires email, password, and the admin access key. Payments must be verified by backend API routes only; never trust frontend payment status.
+
+Before pushing to GitHub, run:
+
+```bash
+git ls-files | rg "(^|/)node_modules/|^\\.env$|^\\.next/|\\.log$|tsbuildinfo$"
+```
+
+The command should print nothing.
 
 ---
 

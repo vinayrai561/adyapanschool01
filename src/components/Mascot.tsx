@@ -25,16 +25,19 @@ interface BallState {
   opacity: number; visible: boolean;
 }
 
-/* ── Remove white/near-white pixels from canvas ── */
+/* ── Remove white/near-white pixels from canvas (adjusted for mascot eyes) ── */
 function removeWhiteBg(ctx: CanvasRenderingContext2D, w: number, h: number) {
   const id   = ctx.getImageData(0, 0, w, h);
   const data = id.data;
   for (let i = 0; i < data.length; i += 4) {
     const r = data[i], g = data[i + 1], b = data[i + 2];
-    if (r > 230 && g > 230 && b > 230) {
+    // More conservative white removal to preserve mascot eyes
+    if (r > 245 && g > 245 && b > 245) {
+      // Only remove very white pixels
       data[i + 3] = 0;
-    } else if (r > 200 && g > 200 && b > 200) {
-      data[i + 3] = Math.round(((255 - (r + g + b) / 3) / 55) * 255);
+    } else if (r > 235 && g > 235 && b > 235) {
+      // Slightly reduce opacity for near-white pixels
+      data[i + 3] = Math.round(data[i + 3] * 0.3);
     }
   }
   ctx.putImageData(id, 0, 0);
@@ -109,7 +112,8 @@ export default function Mascot() {
         if (canvas.height !== h) canvas.height = h;
         ctx.clearRect(0, 0, w, h);
         ctx.drawImage(video, 0, 0, w, h);
-        removeWhiteBg(ctx, w, h);
+        // Disable white background removal for video to preserve mascot eyes
+        // removeWhiteBg(ctx, w, h);
       }
       rafRef.current = requestAnimationFrame(draw);
     };
@@ -120,15 +124,16 @@ export default function Mascot() {
   const loadVideo = useCallback(() => {
     const v = videoRef.current;
     if (!v) return;
-    // Try webm first (better browser support), fall back to mp4
-    v.src   = ASSETS.juggle;
+    // Force reload by adding timestamp to prevent caching
+    const timestamp = Date.now();
+    v.src   = `${ASSETS.juggle}?v=${timestamp}`;
     v.loop  = true;
     v.muted = true;
     v.playsInline = true;
     v.load();
     v.play().catch(() => {
       // Fallback to mp4 if webm fails
-      v.src = ASSETS.juggleMp4;
+      v.src = `${ASSETS.juggleMp4}?v=${timestamp}`;
       v.load();
       v.play().catch(() => {});
     });
@@ -214,6 +219,12 @@ export default function Mascot() {
     const dir   = end.x >= start.x ? 1 : -1;
     const t0    = performance.now();
 
+    // Mascot stage size → target ball scale at impact
+    const mascotW   = stageRef.current?.clientWidth  ?? 220;
+    const mascotH   = stageRef.current?.clientHeight ?? 220;
+    const mascotSize = Math.max(mascotW, mascotH);
+    const impactScale = mascotSize / ballD; // grow ball to mascot size on hit
+
     // Make ball visible at start position before animating
     setBall({ x: start.x, y: start.y, rot: 0, scale: 1, opacity: 1, visible: true });
 
@@ -225,11 +236,24 @@ export default function Mascot() {
         const x       = start.x + (end.x - start.x) * p;
         const y       = start.y + (end.y - start.y) * p - arc * 4 * p * (1 - p);
         const rot     = dir * (35 + p * 620);
-        const scale   = 1 - p * 0.16;
-        const opacity = t > 0.92 ? 1 - (t - 0.92) / 0.08 : 1;
+
+        // Travel: slight shrink → on impact: burst to mascot size → fade
+        let scale: number;
+        let opacity: number;
+        if (t < 0.88) {
+          // In-flight: subtle shrink (perspective effect)
+          scale   = 1 - p * 0.12;
+          opacity = 1;
+        } else {
+          // Impact phase: scale up to mascot size then fade out
+          const ip = (t - 0.88) / 0.12;          // 0→1 during impact
+          scale   = (1 - 0.12) + ip * (impactScale - (1 - 0.12));
+          opacity = 1 - ip;
+        }
+
         setBall({ x, y, rot, scale, opacity, visible: true });
         if (t < 1) { requestAnimationFrame(step); return; }
-        setTimeout(() => { setBall(b => ({ ...b, visible: false })); resolve(); }, 140);
+        setTimeout(() => { setBall(b => ({ ...b, visible: false })); resolve(); }, 80);
       };
       requestAnimationFrame(step);
     });

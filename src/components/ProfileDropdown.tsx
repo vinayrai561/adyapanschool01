@@ -31,6 +31,7 @@ const ICONS = {
   courses:     'M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253',
   wishlist:    'M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z',
   certificate: 'M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z',
+  project:     'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01',
   billing:     'M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z',
   bell:        'M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9',
   moon:        'M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z',
@@ -222,13 +223,13 @@ function PurchasedCoursesModal({ onClose }: { onClose: () => void }) {
   }, []);
 
   return (
-    <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4" style={{ margin: 0 }}>
       {/* Backdrop */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="absolute inset-0 bg-black/50 backdrop-blur-md"
+        className="absolute inset-0 bg-black/60 backdrop-blur-md"
         onClick={onClose}
       />
 
@@ -238,9 +239,9 @@ function PurchasedCoursesModal({ onClose }: { onClose: () => void }) {
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.88, y: 32 }}
         transition={{ type: 'spring', stiffness: 320, damping: 28 }}
-        className="relative w-full max-w-md mx-auto rounded-3xl overflow-hidden shadow-2xl"
+        className="relative w-full max-w-md rounded-3xl overflow-hidden shadow-2xl z-10"
         style={{
-          background: 'rgba(255,255,255,0.92)',
+          background: 'rgba(255,255,255,0.98)',
           backdropFilter: 'blur(24px) saturate(1.6)',
           WebkitBackdropFilter: 'blur(24px) saturate(1.6)',
           border: '1px solid rgba(255,255,255,0.6)',
@@ -375,8 +376,6 @@ export default function ProfileDropdown({ user, onUserUpdate }: Props) {
   const [open,            setOpen]            = useState(false);
   const [showEditModal,   setShowEditModal]   = useState(false);
   const [showCourses,     setShowCourses]     = useState(false);
-  const [darkMode,        setDarkMode]        = useState(false);
-  const [notifications,   setNotifications]   = useState(3); // badge count
   const ref = useRef<HTMLDivElement>(null);
 
   /* close on outside click */
@@ -387,11 +386,6 @@ export default function ProfileDropdown({ user, onUserUpdate }: Props) {
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
   }, []);
-
-  /* dark mode toggle */
-  useEffect(() => {
-    document.documentElement.classList.toggle('dark', darkMode);
-  }, [darkMode]);
 
   const handleLogout = async () => {
     await fetch('/api/auth/logout', { method: 'POST' });
@@ -496,34 +490,26 @@ export default function ProfileDropdown({ user, onUserUpdate }: Props) {
               {/* ── Menu items ── */}
               <div className="p-2 space-y-0.5">
                 <MenuItem icon={ICONS.edit}    label="Edit Profile"   onClick={() => { setOpen(false); setShowEditModal(true); }} />
-                <MenuItem icon={ICONS.update}  label="Update Profile" onClick={() => { setOpen(false); setShowEditModal(true); }} />
 
                 <div className="my-1.5 border-t border-gray-100" />
 
-                <MenuItem icon={ICONS.courses}     label="My Purchased Courses" onClick={() => { setOpen(false); setShowCourses(true); }} />
-                <MenuItem icon={ICONS.wishlist}    label="Wishlist"             href="/dashboard/student" />
-                <MenuItem icon={ICONS.certificate} label="Certificates"         href="/dashboard/student" />
+                {/* Student-only menu items */}
+                {user.role === 'STUDENT' && (
+                  <>
+                    <MenuItem icon={ICONS.courses}     label="My Purchased Courses" onClick={() => { setOpen(false); setShowCourses(true); }} />
+                    <MenuItem icon={ICONS.wishlist}    label="Wishlist"             onClick={() => { setOpen(false); router.push('/dashboard/student?tab=courses'); }} />
+                    <MenuItem icon={ICONS.certificate} label="Certificates"         onClick={() => { setOpen(false); router.push('/dashboard/student?tab=certificates'); }} />
+                    <MenuItem icon={ICONS.project}     label="Track Your Project"   onClick={() => { setOpen(false); router.push('/company/my-projects'); }} />
+                  </>
+                )}
 
-                <div className="my-1.5 border-t border-gray-100" />
-
-                <MenuItem icon={ICONS.billing} label="Billing / Payments"  href="/dashboard/student" />
-                <MenuItem icon={ICONS.bell}    label="Notifications"        onClick={() => { setOpen(false); setNotifications(0); }} badge={notifications > 0 ? notifications : undefined} />
-
-                {/* Dark mode toggle */}
-                <button
-                  type="button"
-                  onClick={() => setDarkMode(v => !v)}
-                  className="group flex items-center gap-3 w-full px-4 py-2.5 text-sm font-medium rounded-xl text-gray-700 hover:bg-orange-50 hover:text-[#ffa800] transition-all"
-                >
-                  <span className="flex-shrink-0 w-8 h-8 rounded-lg bg-gray-100 group-hover:bg-orange-100 flex items-center justify-center transition-colors">
-                    <Icon d={darkMode ? ICONS.sun : ICONS.moon} className="text-gray-500 group-hover:text-[#ffa800]" />
-                  </span>
-                  <span className="flex-1 text-left">Dark Mode</span>
-                  {/* Toggle pill */}
-                  <div className={`relative w-10 h-5 rounded-full transition-colors duration-300 ${darkMode ? 'bg-[#ffa800]' : 'bg-gray-200'}`}>
-                    <div className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform duration-300 ${darkMode ? 'translate-x-5' : 'translate-x-0.5'}`} />
-                  </div>
-                </button>
+                {/* Organization/Admin menu items */}
+                {['COMPANY', 'ADMIN', 'SUPERADMIN'].includes(user.role || '') && (
+                  <>
+                    <MenuItem icon={ICONS.courses}     label="Find Employees"       onClick={() => { setOpen(false); router.push('/company/find-employee'); }} />
+                    <MenuItem icon={ICONS.wishlist}    label="My Shortlists"        onClick={() => { setOpen(false); router.push('/company/shortlists'); }} />
+                  </>
+                )}
 
                 <div className="my-1.5 border-t border-gray-100" />
 

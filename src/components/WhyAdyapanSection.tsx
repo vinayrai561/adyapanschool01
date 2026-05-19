@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 
 const features = [
   {
-    icon: '✓',
+    icon: '✅',
     title: 'Verified Skills',
     description: 'Every skill you earn is blockchain-verified and trusted by top companies',
   },

@@ -5,78 +5,31 @@ import { useRouter } from 'next/navigation';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Check, Crown, Sparkles, X } from 'lucide-react';
 import AuthModal from './AuthModal';
+import { ALL_PLANS, type PlanDetail } from '@/lib/planData';
 
 type PricingModalProps = {
   isOpen: boolean;
   onClose: () => void;
 };
 
-type Plan = {
-  name: string;
-  slug: string;
-  price: string;
-  priceNum: number;
-  cta: string;
-  features: string[];
-  isPremium?: boolean;
-};
-
-const plans: Plan[] = [
-  {
-    name: 'Plan 1',
-    slug: 'plan-1',
-    price: '₹3,000',
-    priceNum: 3000,
-    cta: 'Buy Basic',
-    features: [
-      'Industry-ready training',
-      'Project completion certificate',
-      'Community support',
-    ],
-  },
-  {
-    name: 'Plan 2',
-    slug: 'plan-2',
-    price: '₹3,500',
-    priceNum: 3500,
-    cta: 'Buy Standard',
-    features: [
-      'Live projects + mentoring',
-      'Internship completion certificate',
-      'Priority doubt sessions',
-    ],
-  },
-  {
-    name: 'Plan 3',
-    slug: 'plan-3',
-    price: '₹5,000',
-    priceNum: 5000,
-    cta: 'Buy Pro',
-    features: [
-      '3-month learning path',
-      'Mock interviews + resume review',
-      'Job-ready capstone project',
-    ],
-  },
-  {
-    name: 'Plan 4',
-    slug: 'plan-4-premium',
-    price: '₹15,000',
-    priceNum: 15000,
-    cta: 'Get Premium Access',
-    isPremium: true,
-    features: [
-      'Premium career support',
-      'Referral opportunities',
-      'Placement-focused coaching',
-    ],
-  },
-];
+// Map planData to the shape PricingModal needs
+const plans = ALL_PLANS.map(p => ({
+  name: p.label,
+  slug: p.id,
+  price: `₹${p.price.toLocaleString('en-IN')}`,
+  priceNum: p.price,
+  cta: p.isPremium ? 'Get Premium Access' : `Buy ${p.label.split(' ')[0]}`,
+  features: p.benefits.slice(0, 3),
+  isPremium: p.isPremium ?? false,
+  badge: p.badge,
+  emoji: p.emoji,
+  duration: p.duration,
+}));
 
 export default function PricingModal({ isOpen, onClose }: PricingModalProps) {
   const router = useRouter();
   const [authOpen, setAuthOpen] = useState(false);
-  const [pendingPlan, setPendingPlan] = useState<Plan | null>(null);
+  const [pendingPlan, setPendingPlan] = useState<(typeof plans)[0] | null>(null);
   const [checking, setChecking] = useState(false);
 
   /* Lock body scroll while open */
@@ -92,7 +45,7 @@ export default function PricingModal({ isOpen, onClose }: PricingModalProps) {
     };
   }, [isOpen, onClose]);
 
-  const handlePlanSelect = async (plan: Plan) => {
+  const handlePlanSelect = async (plan: typeof plans[0]) => {
     setChecking(true);
     sessionStorage.setItem(
       'selectedPlan',
@@ -208,17 +161,18 @@ export default function PricingModal({ isOpen, onClose }: PricingModalProps) {
                       ].join(' ')}
                     >
                       {/* Best Value badge */}
-                      {plan.isPremium && (
+                      {plan.badge && (
                         <div className="absolute -top-3 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-black px-3 py-1 text-xs font-bold text-white">
                           <span className="inline-flex items-center gap-1">
-                            <Crown className="h-3.5 w-3.5" /> Best Value
+                            <Crown className="h-3.5 w-3.5" /> {plan.badge}
                           </span>
                         </div>
                       )}
 
                       {/* Plan name + price */}
-                      <p className="text-sm font-semibold opacity-90">{plan.name}</p>
+                      <p className="text-sm font-semibold opacity-90">{plan.emoji} {plan.name}</p>
                       <p className="mt-1.5 text-2xl font-extrabold sm:text-3xl">{plan.price}</p>
+                      <p className="text-xs opacity-70 mt-0.5">{plan.duration}</p>
 
                       {/* Features */}
                       <ul className="mt-4 flex-1 space-y-2 text-sm">

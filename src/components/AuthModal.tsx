@@ -1,9 +1,9 @@
-'use client';
+﻿'use client';
 
+import api from '@/lib/api';
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Eye, EyeOff, X, CheckCircle, AlertCircle } from 'lucide-react';
-import axios from 'axios';
 
 interface Props {
   isOpen: boolean;
@@ -55,13 +55,13 @@ export default function AuthModal({ isOpen, onClose, onSuccess, planLabel, planP
     return () => { document.body.style.overflow = ''; };
   }, [isOpen]);
 
-  /* ── Login ── */
+  /* â”€â”€ Login â”€â”€ */
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(''); setLoading(true);
     try {
-      const res = await axios.post('/api/auth/login', { email: lEmail, password: lPwd });
-      setSuccess('Welcome back! Redirecting to checkout…');
+      const res = await api.post('/api/auth/login', { email: lEmail, password: lPwd });
+      setSuccess('Welcome back! Redirecting to checkoutâ€¦');
       window.dispatchEvent(new Event('auth-change'));
       setTimeout(() => { onSuccess(res.data.user); }, 800);
     } catch (err: any) {
@@ -69,7 +69,7 @@ export default function AuthModal({ isOpen, onClose, onSuccess, planLabel, planP
     } finally { setLoading(false); }
   };
 
-  /* ── Signup ── */
+  /* â”€â”€ Signup â”€â”€ */
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
@@ -77,7 +77,7 @@ export default function AuthModal({ isOpen, onClose, onSuccess, planLabel, planP
     if (!agreed) { setError('Please accept the Terms & Conditions.'); return; }
     setLoading(true);
     try {
-      const res = await axios.post('/api/auth/signup', {
+      const res = await api.post('/api/auth/signup', {
         role: 'student',
         firstName: sFirst,
         lastName: sLast,
@@ -85,7 +85,7 @@ export default function AuthModal({ isOpen, onClose, onSuccess, planLabel, planP
         password: sPwd,
         confirmPassword: sCPwd,
       });
-      setSuccess('Account created! Redirecting to checkout…');
+      setSuccess('Account created! Redirecting to checkoutâ€¦');
       window.dispatchEvent(new Event('auth-change'));
       setTimeout(() => { onSuccess(res.data.user); }, 800);
     } catch (err: any) {
@@ -126,10 +126,10 @@ export default function AuthModal({ isOpen, onClose, onSuccess, planLabel, planP
             {/* plan reminder banner */}
             {planLabel && (
               <div className="mx-5 mt-5 rounded-2xl bg-orange-50 border border-orange-100 px-4 py-3 flex items-center gap-3">
-                <span className="text-2xl">🎯</span>
+                <span className="text-2xl">ðŸŽ¯</span>
                 <div>
                   <p className="text-xs text-orange-600 font-semibold uppercase tracking-wide">Selected Plan</p>
-                  <p className="text-sm font-bold text-gray-800">{planLabel} {planPrice && <span className="text-orange-600">— {planPrice}</span>}</p>
+                  <p className="text-sm font-bold text-gray-800">{planLabel} {planPrice && <span className="text-orange-600">â€” {planPrice}</span>}</p>
                 </div>
               </div>
             )}
@@ -138,7 +138,7 @@ export default function AuthModal({ isOpen, onClose, onSuccess, planLabel, planP
             <div className="px-6 pt-5 pb-2 text-center">
               <img src="/adyapan-logo.png" alt="Adyapan" className="h-8 w-auto mx-auto mb-3" />
               <h2 className="text-xl font-black text-gray-900">
-                {tab === 'login' ? 'Welcome Back 👋' : 'Create Your Account 🚀'}
+                {tab === 'login' ? 'Welcome Back ðŸ‘‹' : 'Create Your Account ðŸš€'}
               </h2>
               <p className="text-xs text-gray-500 mt-1">
                 {tab === 'login' ? 'Sign in to continue your enrollment' : 'Join 20,000+ students on Adyapan'}
@@ -198,7 +198,7 @@ export default function AuthModal({ isOpen, onClose, onSuccess, planLabel, planP
                     <motion.button type="submit" disabled={loading} whileHover={{ scale: loading ? 1 : 1.02 }} whileTap={{ scale: 0.98 }}
                       className="w-full py-3.5 rounded-xl font-bold text-white text-sm shadow-lg disabled:opacity-60 flex items-center justify-center gap-2"
                       style={{ background: 'linear-gradient(135deg, #f97316, #ea580c)' }}>
-                      {loading ? <><svg className="w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/></svg>Signing in…</> : '🔓 Login & Continue to Checkout'}
+                      {loading ? <><svg className="w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/></svg>Signing inâ€¦</> : 'ðŸ”“ Login & Continue to Checkout'}
                     </motion.button>
                     <p className="text-center text-xs text-gray-500">
                       Don't have an account?{' '}
@@ -225,7 +225,7 @@ export default function AuthModal({ isOpen, onClose, onSuccess, planLabel, planP
                     <div>
                       <label className="block text-xs font-semibold text-gray-600 mb-1.5">Phone Number</label>
                       <div className="flex gap-2">
-                        <span className="rounded-xl border border-gray-200 px-3 py-3 text-sm bg-gray-50 text-gray-600 shrink-0">🇮🇳 +91</span>
+                        <span className="rounded-xl border border-gray-200 px-3 py-3 text-sm bg-gray-50 text-gray-600 shrink-0">ðŸ‡®ðŸ‡³ +91</span>
                         <input value={sPhone} onChange={e => setSPhone(e.target.value.replace(/\D/,'').slice(0,10))} placeholder="9876543210" className={inp} />
                       </div>
                     </div>
@@ -254,7 +254,7 @@ export default function AuthModal({ isOpen, onClose, onSuccess, planLabel, planP
                     <motion.button type="submit" disabled={loading} whileHover={{ scale: loading ? 1 : 1.02 }} whileTap={{ scale: 0.98 }}
                       className="w-full py-3.5 rounded-xl font-bold text-white text-sm shadow-lg disabled:opacity-60 flex items-center justify-center gap-2"
                       style={{ background: 'linear-gradient(135deg, #f97316, #ea580c)' }}>
-                      {loading ? <><svg className="w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/></svg>Creating account…</> : '🚀 Create Account & Enroll'}
+                      {loading ? <><svg className="w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/></svg>Creating accountâ€¦</> : 'ðŸš€ Create Account & Enroll'}
                     </motion.button>
                     <p className="text-center text-xs text-gray-500">
                       Already have an account?{' '}
@@ -267,11 +267,11 @@ export default function AuthModal({ isOpen, onClose, onSuccess, planLabel, planP
 
             {/* footer trust */}
             <div className="px-6 pb-5 flex items-center justify-center gap-4 text-xs text-gray-400 border-t border-gray-100 pt-3">
-              <span>🔒 SSL Secured</span>
-              <span>•</span>
-              <span>👨‍🎓 20,000+ Students</span>
-              <span>•</span>
-              <span>⭐ 4.9 Rating</span>
+              <span>ðŸ”’ SSL Secured</span>
+              <span>â€¢</span>
+              <span>ðŸ‘¨â€ðŸŽ“ 20,000+ Students</span>
+              <span>â€¢</span>
+              <span>â­ 4.9 Rating</span>
             </div>
           </motion.div>
         </div>

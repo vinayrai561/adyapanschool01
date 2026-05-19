@@ -23,6 +23,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import jwt from 'jsonwebtoken';
 import { connectToDatabase } from '@/lib/mongodb';
+import { requireJwtSecret } from '@/lib/security';
 import { sendPaymentNotifications } from '@/lib/notifications';
 import Payment from '@/models/Payment';
 import Enrollment from '@/models/Enrollment';
@@ -64,7 +65,7 @@ async function savePaymentAndEnroll(
 
   if (token) {
     try {
-      const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key') as {
+      const decoded = jwt.verify(token, requireJwtSecret()) as {
         userId: string;
       };
       userId = decoded.userId;

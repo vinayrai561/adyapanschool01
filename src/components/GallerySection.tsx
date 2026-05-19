@@ -8,11 +8,32 @@ const customEase = [0.22, 1, 0.36, 1] as const;
 
 const galleryImages = [
   {
+    src: '/images/sai-charan.jpeg',
+    alt: 'Office Visit - Charan',
+    caption: 'Office Visit',
+    category: 'Team',
+    span: 'col-span-1 row-span-2',
+  },
+  {
     src: '/images/team.jpg',
     alt: 'Adyapan Team',
     caption: 'Our Team',
     category: 'Team',
     span: 'col-span-2 row-span-2',
+  },
+  {
+    src: '/images/jag.jpeg?v=20260513',
+    alt: 'Professional portrait',
+    caption: 'Professional Portrait',
+    category: 'Team',
+    span: 'col-span-1 row-span-2',
+  },
+  {
+    src: '/images/vit.jpeg?v=20260513',
+    alt: 'Team office visit',
+    caption: 'Team Office Visit',
+    category: 'Team',
+    span: 'col-span-2 row-span-1',
   },
   {
     src: '/images/room-teaching.jpg',

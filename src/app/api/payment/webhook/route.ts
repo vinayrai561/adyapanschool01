@@ -1,282 +1,180 @@
 /**
  * POST /api/payment/webhook
  *
- * Razorpay Webhook — source of truth for payment events
+ * Razorpay Webhook — authoritative source for payment events.
+ * Uses db-service for all persistence.
  *
- * Events handled:
- *   payment.captured  → success flow
- *   payment.failed    → failure flow
+ * Events: payment.captured → success flow | payment.failed → failure flow
  *
- * Security:
- *   - Verifies X-Razorpay-Signature using HMAC SHA256
- *   - Idempotent: skips if paymentId already processed
- *   - Never trusts frontend — webhook is the authoritative source
- *
- * Setup in Razorpay Dashboard:
- *   Webhook URL: https://yourdomain.com/api/payment/webhook
- *   Secret: set RAZORPAY_WEBHOOK_SECRET in .env
- *   Events: payment.captured, payment.failed
+ * Setup: Webhook URL: https://yourdomain.com/api/payment/webhook
+ *        Secret: RAZORPAY_WEBHOOK_SECRET in .env
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
 import { connectToDatabase } from '@/lib/mongodb';
-import Payment from '@/models/Payment';
-import Enrollment from '@/models/Enrollment';
-import Progress from '@/models/Progress';
-import Course from '@/models/Course';
-import AuthUser from '@/models/AuthUser';
-import EmailLog from '@/models/EmailLog';
+import {
+  savePayment,
+  createEnrollmentWithProgress,
+  logEmail,
+  wasEmailSent,
+} from '@/lib/db-service';
 import { sendPaymentSuccessEmail, sendPaymentFailureEmail } from '@/lib/email';
-import { COURSE_CATALOGUE, withTotalLessons } from '@/lib/courseData';
+import AuthUser from '@/models/AuthUser';
+import Payment from '@/models/Payment';
 
 const GST_RATE = 0.18;
 
 const PLAN_SLUGS: Record<string, string> = {
-  'plan-1': 'Adyapan Starter',
-  'plan-2': 'Adyapan Standard',
-  'plan-3': 'Adyapan Professional',
+  'plan-1':         'Adyapan Starter',
+  'plan-2':         'Adyapan Standard',
+  'plan-3':         'Adyapan Professional',
   'plan-4-premium': 'Adyapan Career Pro',
 };
 
-/* ── Verify webhook signature ── */
 function verifyWebhookSignature(body: string, signature: string): boolean {
   const secret = process.env.RAZORPAY_WEBHOOK_SECRET;
   if (!secret) {
-    console.warn('[Webhook] RAZORPAY_WEBHOOK_SECRET not set — skipping signature check');
-    return true; // allow in dev if not configured
+    console.warn('[Webhook] RAZORPAY_WEBHOOK_SECRET not set — skipping check in dev');
+    return true;
   }
   const expected = crypto.createHmac('sha256', secret).update(body).digest('hex');
   return expected === signature;
 }
 
 export async function POST(req: NextRequest) {
-  const rawBody = await req.text();
+  const rawBody  = await req.text();
   const signature = req.headers.get('x-razorpay-signature') || '';
 
-  // Verify webhook authenticity
   if (!verifyWebhookSignature(rawBody, signature)) {
     console.warn('[Webhook] ❌ Invalid signature — rejected');
     return NextResponse.json({ error: 'Invalid signature' }, { status: 400 });
   }
 
   let event: any;
-  try {
-    event = JSON.parse(rawBody);
-  } catch {
-    return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 });
-  }
+  try { event = JSON.parse(rawBody); }
+  catch { return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 }); }
 
-  const eventType: string = event.event;
+  const eventType     = event.event as string;
   const paymentEntity = event.payload?.payment?.entity;
-
-  if (!paymentEntity) {
-    return NextResponse.json({ received: true });
-  }
+  if (!paymentEntity) return NextResponse.json({ received: true });
 
   await connectToDatabase();
 
-  const paymentId = paymentEntity.id;
-  const orderId   = paymentEntity.order_id;
-  const amount    = (paymentEntity.amount || 0) / 100; // paise → rupees
-  const email     = paymentEntity.email || '';
-  const contact   = paymentEntity.contact || '';
-  const notes     = paymentEntity.notes || {};
-  const courseSlug = notes.plan || notes.courseSlug || 'plan-4-premium';
+  const paymentId  = paymentEntity.id as string;
+  const orderId    = paymentEntity.order_id as string;
+  const amount     = (paymentEntity.amount || 0) / 100;
+  const email      = (paymentEntity.email || '') as string;
+  const contact    = (paymentEntity.contact || '') as string;
+  const notes      = paymentEntity.notes || {};
+  const courseSlug = (notes.plan || notes.courseSlug || 'plan-4-premium') as string;
   const courseName = PLAN_SLUGS[courseSlug] || 'Adyapan Course';
-  const planLabel  = notes.planLabel || courseName;
+  const planLabel  = (notes.planLabel || courseName) as string;
 
-  console.log(`[Webhook] Event: ${eventType} | Payment: ${paymentId} | Order: ${orderId}`);
+  console.log(`[Webhook] ${eventType} | ${paymentId} | ${orderId}`);
 
-  /* ════════════════════════════════════════════════
-     PAYMENT CAPTURED (SUCCESS)
-  ════════════════════════════════════════════════ */
+  /* ── PAYMENT CAPTURED ── */
   if (eventType === 'payment.captured') {
-    // Idempotency check
+    // Idempotency
     const existing = await Payment.findOne({ paymentId });
     if (existing) {
-      console.log(`[Webhook] Duplicate payment.captured for ${paymentId} — skipping`);
+      console.log(`[Webhook] Duplicate captured: ${paymentId} — skip`);
       return NextResponse.json({ received: true });
     }
 
-    const base  = parseFloat((amount / (1 + GST_RATE)).toFixed(2));
-    const gst   = parseFloat((amount - base).toFixed(2));
-    const now   = new Date();
+    const base = parseFloat((amount / (1 + GST_RATE)).toFixed(2));
+    const gst  = parseFloat((amount - base).toFixed(2));
 
-    // Find user by email
-    const dbUser = await AuthUser.findOne({ email: email.toLowerCase() }).lean();
-    const userId = (dbUser as any)?._id?.toString() || '';
+    const dbUser   = await AuthUser.findOne({ email: email.toLowerCase() }).lean();
+    const userId   = (dbUser as any)?._id?.toString() || '';
     const userName = (dbUser as any)?.name || paymentEntity.name || 'Student';
 
-    // Save payment
-    await Payment.create({
-      userId,
-      userName,
-      userEmail: email.toLowerCase(),
-      userPhone: contact,
-      paymentId,
-      orderId,
-      courseSlug,
-      courseName,
-      planLabel,
-      baseAmount: base,
-      gstAmount: gst,
-      totalAmount: amount,
-      currency: 'INR',
-      status: 'success',
-      paymentMethod: paymentEntity.method || 'upi',
-      signatureVerified: true,
-      isTestMode: false,
-      paidAt: now,
+    // Critical: save payment
+    await savePayment({
+      userId, userName, userEmail: email.toLowerCase(), userPhone: contact,
+      paymentId, orderId, courseSlug, courseName, planLabel,
+      baseAmount: base, gstAmount: gst, totalAmount: amount,
+      status: 'success', paymentMethod: paymentEntity.method || 'upi',
+      signatureVerified: true, isTestMode: false, paidAt: new Date(),
     });
 
-    console.log(`[Webhook] ✅ Payment saved: ${paymentId}`);
-
-    // Enroll user
+    // Critical: enroll
     if (userId) {
-      try {
-        const existingEnrollment = await Enrollment.findOne({ paymentId });
-        if (!existingEnrollment) {
-          await Enrollment.create({ userId, courseSlug, courseName, planLabel, amountPaid: amount, paymentId, enrolledAt: now });
-
-          let course = await Course.findOne({ slug: courseSlug }).lean();
-          if (!course) {
-            const raw = COURSE_CATALOGUE.find(c => c.slug === courseSlug);
-            if (raw) {
-              const data = withTotalLessons(raw);
-              course = await Course.findOneAndUpdate({ slug: data.slug }, { $set: data }, { upsert: true, new: true }).lean();
-            }
-          }
-
-          await Progress.findOneAndUpdate(
-            { userId, courseSlug },
-            { $setOnInsert: { completedLessons: [], progressPercent: 0, totalLessons: (course as any)?.totalLessons || 0 } },
-            { upsert: true }
-          );
-
-          await AuthUser.findByIdAndUpdate(userId, { $addToSet: { purchasedCourses: courseName } });
-          console.log(`[Webhook] ✅ Enrolled ${userName} in ${courseSlug}`);
-        }
-      } catch (e: any) {
-        console.warn('[Webhook] Enrollment error:', e?.message);
-      }
+      await createEnrollmentWithProgress({
+        userId, courseSlug, courseName,
+        planId: courseSlug, planLabel, amountPaid: amount, paymentId,
+      }).catch(e => console.warn('[Webhook] Enrollment error:', e?.message));
     }
 
-    // Send success email (prevent duplicate using EmailLog)
-    const emailAlreadySent = await EmailLog.findOne({ paymentId, type: 'payment_success', status: 'sent' });
-    if (!emailAlreadySent && email) {
+    // Email
+    const alreadySent = await wasEmailSent('paymentId', paymentId, 'payment_success');
+    if (!alreadySent && email) {
       let emailStatus: 'sent' | 'failed' = 'failed';
       let errorMessage = '';
-
       try {
         const sent = await sendPaymentSuccessEmail({
-          name: userName,
-          email,
-          courseName,
-          courseSlug,
-          planLabel,
-          amount,
-          paymentId,
-          orderId,
+          name: userName, email, courseName, courseSlug,
+          planLabel, amount, paymentId, orderId,
         });
         emailStatus = sent ? 'sent' : 'failed';
-        if (!sent) errorMessage = 'SendGrid returned non-202';
-      } catch (e: any) {
-        errorMessage = e?.message || 'Unknown error';
-      }
+        if (!sent) errorMessage = 'SendGrid non-202';
+      } catch (e: any) { errorMessage = e?.message || 'Unknown'; }
 
-      await EmailLog.create({
-        userId,
-        email,
-        type: 'payment_success',
-        status: emailStatus,
-        paymentId,
-        orderId,
-        courseName,
-        amount,
-        errorMessage,
+      await logEmail({
+        userId, email, emailType: 'payment_success',
+        subject: `Payment Confirmed — ${courseName}`,
+        status: emailStatus, errorMessage,
+        paymentId, orderId, courseSlug, courseName, amount,
       });
-
-      console.log(`[Webhook] Email ${emailStatus} for ${email}`);
     }
 
     return NextResponse.json({ received: true, status: 'success' });
   }
 
-  /* ════════════════════════════════════════════════
-     PAYMENT FAILED
-  ════════════════════════════════════════════════ */
+  /* ── PAYMENT FAILED ── */
   if (eventType === 'payment.failed') {
     const failureReason = paymentEntity.error_description || paymentEntity.error_reason || 'Payment declined';
 
-    // Save failed payment (allow duplicates for audit trail)
-    const existingFailed = await Payment.findOne({ paymentId, status: 'failed' });
-    if (!existingFailed) {
-      await Payment.create({
-        userEmail: email.toLowerCase(),
-        userPhone: contact,
-        paymentId: paymentId || `failed_${Date.now()}`,
-        orderId,
-        courseSlug,
-        courseName,
-        planLabel,
-        baseAmount: amount,
-        gstAmount: 0,
-        totalAmount: amount,
-        currency: 'INR',
-        status: 'failed',
-        paymentMethod: paymentEntity.method || 'upi',
-        signatureVerified: false,
-        isTestMode: false,
-      });
-      console.log(`[Webhook] ❌ Failed payment saved: ${paymentId}`);
+    const existing = await Payment.findOne({ paymentId, status: 'failed' });
+    if (!existing) {
+      await savePayment({
+        userId: '', userName: '', userEmail: email.toLowerCase(), userPhone: contact,
+        paymentId: paymentId || `failed_${Date.now()}`, orderId,
+        courseSlug, courseName, planLabel,
+        baseAmount: amount, gstAmount: 0, totalAmount: amount,
+        status: 'failed', paymentMethod: paymentEntity.method || 'upi',
+        failureReason, signatureVerified: false, isTestMode: false,
+      }).catch(e => console.warn('[Webhook] Failed payment save error:', e?.message));
     }
 
-    // Send failure email (prevent duplicate)
-    const emailAlreadySent = await EmailLog.findOne({ orderId, type: 'payment_failed', status: 'sent' });
-    if (!emailAlreadySent && email) {
-      const dbUser = await AuthUser.findOne({ email: email.toLowerCase() }).lean();
-      const userName = (dbUser as any)?.name || paymentEntity.name || 'Student';
+    // Failure email
+    const alreadySent = await wasEmailSent('paymentId', orderId, 'payment_failed');
+    if (!alreadySent && email) {
+      const dbUser   = await AuthUser.findOne({ email: email.toLowerCase() }).lean();
+      const userName = (dbUser as any)?.name || 'Student';
       const userId   = (dbUser as any)?._id?.toString() || '';
 
       let emailStatus: 'sent' | 'failed' = 'failed';
       let errorMessage = '';
-
       try {
         const sent = await sendPaymentFailureEmail({
-          name: userName,
-          email,
-          courseName,
-          courseSlug,
-          planLabel,
-          amount,
-          orderId,
-          failureReason,
+          name: userName, email, courseName, courseSlug,
+          planLabel, amount, orderId, failureReason,
         });
         emailStatus = sent ? 'sent' : 'failed';
-        if (!sent) errorMessage = 'SendGrid returned non-202';
-      } catch (e: any) {
-        errorMessage = e?.message || 'Unknown error';
-      }
+        if (!sent) errorMessage = 'SendGrid non-202';
+      } catch (e: any) { errorMessage = e?.message || 'Unknown'; }
 
-      await EmailLog.create({
-        userId,
-        email,
-        type: 'payment_failed',
-        status: emailStatus,
-        paymentId: paymentId || '',
-        orderId,
-        courseName,
-        amount,
-        errorMessage,
+      await logEmail({
+        userId, email, emailType: 'payment_failed',
+        subject: `Payment Failed — ${courseName}`,
+        status: emailStatus, errorMessage,
+        paymentId: paymentId || '', orderId, courseSlug, courseName, amount,
       });
-
-      console.log(`[Webhook] Failure email ${emailStatus} for ${email}`);
     }
 
     return NextResponse.json({ received: true, status: 'failed' });
   }
 
-  // Unhandled event — acknowledge receipt
   return NextResponse.json({ received: true });
 }

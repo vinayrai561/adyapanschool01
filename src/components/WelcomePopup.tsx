@@ -6,17 +6,58 @@ import Link from 'next/link';
 
 const WelcomePopup = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Show popup after 1 second of page load
-    const timer = setTimeout(() => {
-      setIsOpen(true);
-    }, 1000);
+    const checkAuthAndShowPopup = async () => {
+      try {
+        // Check if user permanently dismissed the popup (localStorage)
+        const popupDismissed = localStorage.getItem('welcomePopupDismissed');
+        if (popupDismissed === 'true') {
+          setIsLoading(false);
+          return;
+        }
 
-    return () => clearTimeout(timer);
+        // Check if user is authenticated
+        const response = await fetch('/api/auth/me', {
+          method: 'GET',
+          credentials: 'include',
+        });
+
+        if (response.ok) {
+          // User is authenticated, don't show popup
+          setIsLoading(false);
+          return;
+        }
+
+        // User is not authenticated, show popup after 1 second
+        setTimeout(() => {
+          setIsOpen(true);
+          setIsLoading(false);
+        }, 1000);
+      } catch (error) {
+        // On error, assume user is not authenticated and show popup
+        setTimeout(() => {
+          setIsOpen(true);
+          setIsLoading(false);
+        }, 1000);
+      }
+    };
+
+    checkAuthAndShowPopup();
   }, []);
 
-  const closePopup = () => setIsOpen(false);
+  const closePopup = () => {
+    setIsOpen(false);
+    // Remember that user dismissed the popup permanently
+    localStorage.setItem('welcomePopupDismissed', 'true');
+  };
+
+  const handleActionClick = () => {
+    // Just close popup without saving to localStorage
+    // Popup will show again on every refresh
+    setIsOpen(false);
+  };
 
   return (
     <AnimatePresence>
@@ -108,7 +149,7 @@ const WelcomePopup = () => {
                   <motion.div whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }} className="relative z-10 w-fit">
                     <Link
                       href="/auth?type=student"
-                      onClick={closePopup}
+                      onClick={handleActionClick}
                       className="inline-flex items-center px-5 py-2.5 bg-white rounded-xl font-semibold text-sm hover:bg-orange-50 transition-colors"
                       style={{ color: '#c05000' }}
                     >
@@ -139,7 +180,7 @@ const WelcomePopup = () => {
 
                   <h3 className="text-2xl font-extrabold text-white mb-3 relative z-10">I'm a Company</h3>
                   <p className="text-gray-400 text-sm mb-6 leading-relaxed relative z-10">
-                    Post micro-internship tasks, access pre-vetted talent, and build a direct pipeline to your next full-time hire.
+                    Access pre-vetted talent and build a direct pipeline to your next full-time hire.
                   </p>
 
                   <motion.ul
@@ -149,8 +190,8 @@ const WelcomePopup = () => {
                     className="space-y-2 mb-8 relative z-10"
                   >
                     {[
-                      'Post tasks in minutes',
-                      'Pre-assessed, verified talent',
+                      'Find verified talent',
+                      'Pre-assessed, job-ready students',
                       'See real project portfolios',
                       'Direct-to-hire pipeline',
                     ].map((item) => (
@@ -170,11 +211,11 @@ const WelcomePopup = () => {
                   <motion.div whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }} className="relative z-10">
                     <Link
                       href="/company"
-                      onClick={closePopup}
+                      onClick={handleActionClick}
                       className="inline-flex items-center px-5 py-2.5 rounded-xl font-semibold text-sm transition-colors"
                       style={{ background: '#ff9900', color: '#1a0800' }}
                     >
-                      Post Your First Task
+                      Find Talent
                       <svg className="w-4 h-4 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                       </svg>

@@ -4,8 +4,8 @@
  * Auth: JWT cookie (authToken)
  */
 import { NextRequest, NextResponse } from 'next/server';
-import jwt from 'jsonwebtoken';
 import { connectToDatabase } from '@/lib/mongodb';
+import { protectRoute } from '@/lib/auth';
 import AuthUser from '@/models/AuthUser';
 import Enrollment from '@/models/Enrollment';
 import Progress from '@/models/Progress';
@@ -14,25 +14,18 @@ import Certificate from '@/models/Certificate';
 import { COURSE_CATALOGUE, withTotalLessons } from '@/lib/courseData';
 
 export async function GET(req: NextRequest) {
+  const auth = protectRoute(req);
+  if (auth instanceof NextResponse) return auth;
+
   try {
     await connectToDatabase();
 
     /* ── Auth ── */
-    const token = req.cookies.get('authToken')?.value;
-    if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-
-    let decoded: { userId: string };
-    try {
-      decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key') as { userId: string };
-    } catch {
-      return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
-    }
-
-    const user = await AuthUser.findById(decoded.userId).lean();
+    const user = await AuthUser.findById(auth.userId).lean();
     if (!user) return NextResponse.json({ error: 'User not found' }, { status: 404 });
 
     /* ── Enrollments ── */
-    const enrollments = await Enrollment.find({ userId: decoded.userId }).lean();
+    const enrollments = await Enrollment.find({ userId: auth.userId }).lean();
 
     /* ── Progress for each enrollment ── */
     const dashboardCourses = await Promise.all(
@@ -51,14 +44,14 @@ export async function GET(req: NextRequest) {
 
         /* Get or init progress */
         let progress = await Progress.findOne({
-          userId: decoded.userId,
+          userId: auth.userId,
           courseSlug: enr.courseSlug,
         }).lean();
 
         if (!progress) {
           const totalLessons = course?.totalLessons ?? 0;
           progress = await Progress.create({
-            userId:           decoded.userId,
+            userId:           auth.userId,
             courseSlug:       enr.courseSlug,
             completedLessons: [],
             progressPercent:  0,
@@ -73,7 +66,7 @@ export async function GET(req: NextRequest) {
         let certificateData = null;
         if (isComplete) {
           const cert = await Certificate.findOne({
-            userId: decoded.userId,
+            userId: auth.userId,
             courseSlug: enr.courseSlug,
           }).lean();
 

@@ -59,4 +59,38 @@ async function sendPaymentConfirmationEmail(payload) {
   }
 }
 
-module.exports = { sendPaymentConfirmationEmail };
+/**
+ * Send project-related emails via SendGrid
+ * (project submission, assignment, completion, admin notifications)
+ *
+ * @param {object} payload
+ * @param {string} payload.to
+ * @param {string} payload.subject
+ * @param {string} payload.html
+ * @param {string} payload.text
+ * @returns {Promise<boolean>} true if sent successfully
+ */
+async function sendProjectEmail({ to, subject, html, text }) {
+  if (!isSendGridConfigured()) {
+    console.warn('[Email] SendGrid not configured — skipping project email to:', to);
+    return false;
+  }
+  sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+  try {
+    await sgMail.send({
+      to,
+      from: { email: 'support@adyapan.com', name: 'Adyapan Skills' },
+      replyTo: 'support@adyapan.com',
+      subject,
+      html,
+      text,
+    });
+    console.log('[Email] ✅ Project email sent to:', to);
+    return true;
+  } catch (error) {
+    console.error('[Email] ❌ Project email error:', error?.response?.body?.errors?.[0]?.message || error.message);
+    return false;
+  }
+}
+
+module.exports = { sendPaymentConfirmationEmail, sendProjectEmail };

@@ -2,16 +2,29 @@ import { NextRequest, NextResponse } from 'next/server';
 import jwt from 'jsonwebtoken';
 import { PrismaClient } from '@prisma/client';
 import { z } from 'zod';
+import {
+  getClientIp,
+  isRateLimited,
+  normalizeEmail,
+  rateLimitResponse,
+  requireJwtSecret,
+  sanitizeMongoInput,
+} from '@/lib/security';
 
 const prisma = new PrismaClient();
 
 const ForgotPasswordSchema = z.object({
-  email: z.string().email('Invalid email address'),
+  email: z.string().email('Invalid email address').transform(normalizeEmail),
 });
 
 export async function POST(request: NextRequest) {
+  const ip = getClientIp(request);
+  if (isRateLimited(`forgot-password:${ip}`, 5, 15 * 60 * 1000)) {
+    return rateLimitResponse('Too many password reset requests. Please try again later.');
+  }
+
   try {
-    const body = await request.json();
+    const body = sanitizeMongoInput(await request.json());
     const validatedData = ForgotPasswordSchema.parse(body);
 
     // Find user by email
@@ -37,7 +50,7 @@ export async function POST(request: NextRequest) {
         email: user.email,
         type: 'password-reset',
       },
-      process.env.JWT_SECRET || 'your-secret-key',
+      requireJwtSecret(),
       { expiresIn: '1h' }
     );
 
@@ -54,8 +67,6 @@ export async function POST(request: NextRequest) {
       {
         success: true,
         message: 'If an account exists with this email, a password reset link has been sent.',
-        // In development only - remove in production
-        ...(process.env.NODE_ENV === 'development' && { resetToken }),
       },
       { status: 200 }
     );

@@ -5,22 +5,27 @@ import { motion } from 'framer-motion';
 const addOns = [
   {
     number: '01',
+    icon: '🏢',
     title: 'Access to top company networks and collaborations.',
   },
   {
     number: '02',
+    icon: '💡',
     title: 'Real industry insights you won\'t find in textbooks.',
   },
   {
     number: '03',
+    icon: '💼',
     title: 'Become placement-ready with our training, backed by lifetime job support.',
   },
   {
     number: '04',
+    icon: '🎤',
     title: 'Mock interviews & resume-building workshops.',
   },
   {
     number: '05',
+    icon: '📚',
     title: '6-month content access - lifetime career impact.',
   },
 ];
@@ -75,6 +80,7 @@ const AddOnsSection = () => {
               className="bg-[#ff9900] rounded-3xl p-6 flex flex-col justify-between min-h-[240px] cursor-default"
             >
               <div>
+                <div className="text-3xl mb-3">{addon.icon}</div>
                 <div className="text-5xl font-extrabold text-white/30 mb-4">
                   {addon.number}
                 </div>

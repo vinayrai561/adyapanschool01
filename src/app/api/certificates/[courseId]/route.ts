@@ -3,37 +3,25 @@
  * Returns certificate details for the authenticated user's course.
  */
 import { NextRequest, NextResponse } from 'next/server';
-import jwt from 'jsonwebtoken';
 import { connectToDatabase } from '@/lib/mongodb';
+import { protectRoute } from '@/lib/auth';
 import Certificate from '@/models/Certificate';
 import Progress from '@/models/Progress';
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { courseId: string } }
+  { params }: { params: Promise<{ courseId: string }> }
 ) {
+  const auth = protectRoute(req);
+  if (auth instanceof NextResponse) return auth;
+
   try {
     await connectToDatabase();
-
-    /* ── Auth ── */
-    const token = req.cookies.get('authToken')?.value;
-    if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-
-    let decoded: { userId: string };
-    try {
-      decoded = jwt.verify(
-        token,
-        process.env.JWT_SECRET || 'your-secret-key'
-      ) as { userId: string };
-    } catch {
-      return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
-    }
-
-    const courseSlug = params.courseId;
+    const { courseId: courseSlug } = await params;
 
     /* ── Check progress ── */
     const progress = await Progress.findOne({
-      userId: decoded.userId,
+      userId: auth.userId,
       courseSlug,
     }).lean();
 
@@ -52,7 +40,7 @@ export async function GET(
 
     /* ── Fetch certificate ── */
     const cert = await Certificate.findOne({
-      userId: decoded.userId,
+      userId: auth.userId,
       courseSlug,
     }).lean();
 

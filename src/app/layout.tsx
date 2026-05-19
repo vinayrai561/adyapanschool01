@@ -1,63 +1,139 @@
-'use client';
-
+import type { Metadata, Viewport } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
-import Navbar from '@/components/Navbar';
-import Footer from '@/components/Footer';
-import WelcomePopup from '@/components/WelcomePopup';
-import AnimatedBackground from '@/components/AnimatedBackground';
-import CookieConsent from '@/components/CookieConsent';
-import Mascot from '@/components/Mascot';
-import WhatsAppButton from '@/components/WhatappButton';
+import Analytics from '@/components/Analytics';
 
-const inter = Inter({ subsets: ['latin'] });
+const inter = Inter({
+  subsets:  ['latin'],
+  display:  'swap',          // prevent FOIT
+  variable: '--font-inter',
+});
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+const APP_URL =
+  process.env.NEXT_PUBLIC_APP_URL ||
+  (process.env.NODE_ENV === 'development' ? 'http://localhost:3000' : 'https://adyapan.com');
+
+export const viewport: Viewport = {
+  width:            'device-width',
+  initialScale:     1,
+  maximumScale:     5,
+  viewportFit:      'cover',
+  themeColor:       '#14162a',
+  colorScheme:      'light',
+};
+
+export const metadata: Metadata = {
+  metadataBase: new URL(APP_URL),
+
+  title: {
+    default:  'Adyapan — Learn, Earn & Get Placed',
+    template: '%s | Adyapan',
+  },
+  description:
+    'Adyapan offers 65+ industry-relevant courses, real internship experience, live classes, and placement support to help students launch their careers in India.',
+  keywords: [
+    'online courses india', 'internship program', 'placement support',
+    'data science course', 'machine learning', 'web development',
+    'adyapan', 'edtech india', 'live online classes', 'career guidance',
+  ],
+  authors:  [{ name: 'Adyapan Edutech Pvt. Ltd.', url: APP_URL }],
+  creator:  'Adyapan Edutech Pvt. Ltd.',
+  publisher:'Adyapan Edutech Pvt. Ltd.',
+  robots: {
+    index:          true,
+    follow:         true,
+    googleBot: {
+      index:             true,
+      follow:            true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet':       -1,
+    },
+  },
+
+  openGraph: {
+    type:        'website',
+    locale:      'en_IN',
+    url:         APP_URL,
+    siteName:    'Adyapan',
+    title:       'Adyapan — Learn, Earn & Get Placed',
+    description: 'Industry-relevant courses with live classes, real internship experience, and placement support.',
+    images: [
+      {
+        url:    '/og-image.png',
+        width:  1200,
+        height: 630,
+        alt:    'Adyapan — EdTech Platform',
+      },
+    ],
+  },
+
+  twitter: {
+    card:        'summary_large_image',
+    site:        '@adyapan',
+    creator:     '@adyapan',
+    title:       'Adyapan — Learn, Earn & Get Placed',
+    description: 'Industry-relevant courses with live classes, real internship experience, and placement support.',
+    images:      ['/og-image.png'],
+  },
+
+  alternates: {
+    canonical: APP_URL,
+  },
+
+  icons: {
+    icon:        '/favicon.ico',
+    shortcut:    '/favicon-16x16.png',
+    apple:       '/apple-touch-icon.png',
+  },
+
+  manifest: '/site.webmanifest',
+
+  verification: {
+    google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION || '',
+    other: {
+      // Bing Webmaster Tools verification
+      'msvalidate.01': process.env.NEXT_PUBLIC_BING_SITE_VERIFICATION || '',
+    },
+  },
+};
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" className={inter.variable}>
       <head>
-        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, viewport-fit=cover" />
-        <meta name="theme-color" content="#14162a" />
-        <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-
-        {/* SEO */}
-        <title>Adyapan — Learn, Earn & Get Placed</title>
-        <meta name="description" content="Adyapan offers industry-relevant courses, real internship experience, and placement support to help students launch their careers." />
-        <meta name="keywords" content="online courses, internship, placement, skills, adyapan, edutech, india" />
-        <meta name="author" content="Adyapan Edutech Pvt. Ltd." />
-        <meta name="robots" content="index, follow" />
-
-        {/* Open Graph */}
-        <meta property="og:type" content="website" />
-        <meta property="og:title" content="Adyapan — Learn, Earn & Get Placed" />
-        <meta property="og:description" content="Industry-relevant courses with real internship experience and placement support." />
-        <meta property="og:image" content="/adyapan-logo.png" />
-        <meta property="og:url" content={process.env.NEXT_PUBLIC_APP_URL || 'https://adyapan.com'} />
-        <meta property="og:site_name" content="Adyapan" />
-
-        {/* Twitter Card */}
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="Adyapan — Learn, Earn & Get Placed" />
-        <meta name="twitter:description" content="Industry-relevant courses with real internship experience and placement support." />
-        <meta name="twitter:image" content="/adyapan-logo.png" />
-
-        {/* Canonical */}
-        <link rel="canonical" href={process.env.NEXT_PUBLIC_APP_URL || 'https://adyapan.com'} />
+        {/* Preconnect to critical third-party origins */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link rel="preconnect" href="https://checkout.razorpay.com" />
+        {/* Schema.org Organization markup */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@type':    'EducationalOrganization',
+              name:       'Adyapan Edutech Pvt. Ltd.',
+              url:        APP_URL,
+              logo:       `${APP_URL}/adyapan-logo.png`,
+              description:'India\'s leading EdTech platform offering 65+ industry-relevant courses with placement support.',
+              sameAs: [
+                'https://www.linkedin.com/company/adyapan',
+                'https://www.instagram.com/adyapan',
+              ],
+              contactPoint: {
+                '@type':             'ContactPoint',
+                telephone:           '+91-8292244709',
+                contactType:         'customer service',
+                availableLanguage:   ['English', 'Hindi'],
+              },
+            }),
+          }}
+        />
       </head>
-      <body className={`${inter.className} min-h-screen flex flex-col overflow-x-hidden`}>
-        <AnimatedBackground />
-        <Navbar />
-        <main className="flex-grow w-full">{children}</main>
-        <Footer />
-        <WelcomePopup />
-        <CookieConsent />
-        <Mascot />
-        <WhatsAppButton />
+      <body className={`${inter.className} min-h-screen flex flex-col overflow-x-hidden`} suppressHydrationWarning>
+        {children}
+        <Analytics />
       </body>
     </html>
   );

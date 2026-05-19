@@ -137,10 +137,10 @@ export default function HeroSection() {
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.8, ease }}
               className="font-black leading-[1.0] tracking-tight text-white"
-              style={{ fontSize: 'clamp(52px, 7vw, 90px)' }}
+              style={{ fontSize: 'clamp(32px, 6vw, 90px)' }}
             >
               Don't Just<br />Learn.<br />
-              <span className="relative inline-block" style={{ minWidth: 220 }}>
+              <span className="relative inline-block" style={{ minWidth: 'clamp(120px, 25vw, 220px)' }}>
                 <AnimatePresence mode="wait">
                   <motion.span
                     key={wordIdx}
@@ -166,7 +166,7 @@ export default function HeroSection() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.4, duration: 0.6, ease }}
-            className="relative w-full max-w-sm sm:max-w-md"
+            className="relative w-full max-w-xs sm:max-w-sm md:max-w-md"
             >
               <div className="flex items-stretch rounded-2xl overflow-hidden shadow-2xl"
                 style={{ border: '2px solid rgba(255,255,255,0.25)' }}>
@@ -292,7 +292,7 @@ export default function HeroSection() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.6, duration: 0.6, ease }}
-              className="flex items-center gap-8 flex-wrap"
+              className="flex items-center gap-4 sm:gap-6 lg:gap-8 flex-wrap"
             >
               {[
                 { n: '10K+', l: 'Students' },

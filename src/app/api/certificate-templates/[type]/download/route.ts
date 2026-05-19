@@ -6,8 +6,8 @@
  * Security: user can only download their own session's templates.
  */
 import { NextRequest, NextResponse } from 'next/server';
-import jwt from 'jsonwebtoken';
 import { connectToDatabase } from '@/lib/mongodb';
+import { protectRoute } from '@/lib/auth';
 import CertificateTemplate from '@/models/CertificateTemplate';
 import { readFile } from 'fs/promises';
 import path from 'path';
@@ -22,24 +22,14 @@ const DOWNLOAD_NAMES: Record<string, string> = {
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { type: string } }
+  { params }: { params: Promise<{ type: string }> }
 ) {
+  const auth = protectRoute(req);
+  if (auth instanceof NextResponse) return auth;
+
   try {
-    /* ── Auth ── */
-    const token = req.cookies.get('authToken')?.value;
-    if (!token) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    try {
-      jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key');
-    } catch {
-      return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
-    }
-
     await connectToDatabase();
-
-    const { type } = params;
+    const { type } = await params;
 
     /* ── Find template ── */
     const template = await CertificateTemplate.findOne({ type, isActive: true }).lean();

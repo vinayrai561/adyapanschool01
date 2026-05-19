@@ -1,0 +1,8 @@
+REPLACE_THIS_FILE_NAME_WITH_YOUR_INDEXNOW_KEY.txt
+---
+Instructions:
+1. Generate your IndexNow key at https://www.bing.com/indexnow
+2. Rename this file to <your-key>.txt  (e.g. abc123def456.txt)
+3. The file content should be exactly your key string (no spaces, no newlines)
+4. Set INDEXNOW_KEY=<your-key> in your .env file
+5. Deploy — Bing will verify at https://adyapan.com/<your-key>.txt

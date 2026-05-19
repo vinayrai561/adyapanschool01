@@ -1,25 +1,32 @@
-import { MetadataRoute } from 'next';
+﻿import { MetadataRoute } from 'next';
+import { ALL_PROGRAMS } from '@/lib/courseData';
+
+const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://adyapan.com';
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const base = process.env.NEXT_PUBLIC_APP_URL || 'https://adyapan.com';
+  const now = new Date();
 
-  const staticPages = [
-    { url: base, priority: 1.0, changeFrequency: 'weekly' as const },
-    { url: `${base}/programs`, priority: 0.9, changeFrequency: 'weekly' as const },
-    { url: `${base}/about`, priority: 0.8, changeFrequency: 'monthly' as const },
-    { url: `${base}/auth`, priority: 0.7, changeFrequency: 'monthly' as const },
-    { url: `${base}/contact`, priority: 0.7, changeFrequency: 'monthly' as const },
-    { url: `${base}/privacy`, priority: 0.5, changeFrequency: 'yearly' as const },
-    { url: `${base}/terms`, priority: 0.5, changeFrequency: 'yearly' as const },
-    { url: `${base}/campus-ambassador`, priority: 0.6, changeFrequency: 'monthly' as const },
-    { url: `${base}/company/hire-talent`, priority: 0.7, changeFrequency: 'monthly' as const },
-    { url: `${base}/gallery`, priority: 0.5, changeFrequency: 'monthly' as const },
+  // ── Static public pages ───────────────────────────────────────────────────
+  const staticPages: MetadataRoute.Sitemap = [
+    { url: BASE_URL,                          lastModified: now, changeFrequency: 'weekly',  priority: 1.0 },
+    { url: `${BASE_URL}/programs`,            lastModified: now, changeFrequency: 'weekly',  priority: 0.9 },
+    { url: `${BASE_URL}/about`,               lastModified: now, changeFrequency: 'monthly', priority: 0.8 },
+    { url: `${BASE_URL}/offline-services`,    lastModified: now, changeFrequency: 'monthly', priority: 0.8 },
+    { url: `${BASE_URL}/campus-ambassador`,   lastModified: now, changeFrequency: 'monthly', priority: 0.7 },
+    { url: `${BASE_URL}/jobs`,                lastModified: now, changeFrequency: 'daily',   priority: 0.8 },
+    { url: `${BASE_URL}/gallery`,             lastModified: now, changeFrequency: 'monthly', priority: 0.5 },
+    { url: `${BASE_URL}/contact`,             lastModified: now, changeFrequency: 'yearly',  priority: 0.6 },
+    { url: `${BASE_URL}/privacy`,             lastModified: now, changeFrequency: 'yearly',  priority: 0.3 },
+    { url: `${BASE_URL}/terms`,               lastModified: now, changeFrequency: 'yearly',  priority: 0.3 },
   ];
 
-  return staticPages.map(page => ({
-    url: page.url,
-    lastModified: new Date(),
-    changeFrequency: page.changeFrequency,
-    priority: page.priority,
+  // ── Dynamic course pages ──────────────────────────────────────────────────
+  const coursePages: MetadataRoute.Sitemap = ALL_PROGRAMS.map((course) => ({
+    url:             `${BASE_URL}/courses/${course.slug}`,
+    lastModified:    now,
+    changeFrequency: 'monthly' as const,
+    priority:        0.8,
   }));
+
+  return [...staticPages, ...coursePages];
 }

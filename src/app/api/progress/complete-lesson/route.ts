@@ -2,143 +2,108 @@
  * POST /api/progress/complete-lesson
  * Body: { courseSlug, lessonId, moduleId }
  *
- * Marks a lesson as complete, recalculates progress.
- * When progress hits 100%, auto-generates a Certificate record.
+ * Marks a lesson complete, recalculates progress.
+ * At 100%: auto-generates Certificate, sends certificate-ready email, logs it.
  */
 import { NextRequest, NextResponse } from 'next/server';
-import jwt from 'jsonwebtoken';
 import { connectToDatabase } from '@/lib/mongodb';
-import Progress from '@/models/Progress';
-import Course from '@/models/Course';
-import Certificate from '@/models/Certificate';
+import { protectRoute } from '@/lib/auth';
+import { sanitizeMongoInput } from '@/lib/security';
+import { updateProgress, logEmail, wasEmailSent } from '@/lib/db-service';
+import { sendCertificateReadyEmail } from '@/lib/email';
 import AuthUser from '@/models/AuthUser';
+import Course from '@/models/Course';
 import { COURSE_CATALOGUE, withTotalLessons } from '@/lib/courseData';
 
-function generateCertificateId(): string {
-  const year = new Date().getFullYear();
-  const rand = Math.random().toString(36).substring(2, 8).toUpperCase();
-  return `ADYP-${year}-${rand}`;
-}
-
 export async function POST(req: NextRequest) {
+  const auth = protectRoute(req);
+  if (auth instanceof NextResponse) return auth;
+
   try {
     await connectToDatabase();
 
-    /* ── Auth ── */
-    const token = req.cookies.get('authToken')?.value;
-    if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-
-    let decoded: { userId: string };
-    try {
-      decoded = jwt.verify(
-        token,
-        process.env.JWT_SECRET || 'your-secret-key'
-      ) as { userId: string };
-    } catch {
-      return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
-    }
-
-    const { courseSlug, lessonId, moduleId } = await req.json();
+    // ── Auth ──
+    const { courseSlug, lessonId, moduleId } = sanitizeMongoInput(await req.json());
     if (!courseSlug || !lessonId) {
-      return NextResponse.json(
-        { error: 'courseSlug and lessonId are required' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'courseSlug and lessonId are required' }, { status: 400 });
     }
 
-    /* ── Fetch user ── */
-    const user = await AuthUser.findById(decoded.userId).lean();
+    // ── Fetch user ──
+    const user = await AuthUser.findById(auth.userId).lean();
     if (!user) return NextResponse.json({ error: 'User not found' }, { status: 404 });
 
-    /* ── Get or seed course ── */
+    // ── Ensure course exists ──
     let course = await Course.findOne({ slug: courseSlug }).lean();
     if (!course) {
-      const raw = COURSE_CATALOGUE.find((c) => c.slug === courseSlug);
+      const raw = COURSE_CATALOGUE.find(c => c.slug === courseSlug);
       if (raw) {
         const data = withTotalLessons(raw);
         course = await Course.findOneAndUpdate(
-          { slug: data.slug },
-          { $set: data },
-          { upsert: true, new: true }
+          { slug: data.slug }, { $set: data }, { upsert: true, new: true }
         ).lean();
       }
     }
-    const totalLessons = (course as any)?.totalLessons ?? 0;
 
-    /* ── Upsert progress ── */
-    const progress = await Progress.findOneAndUpdate(
-      { userId: decoded.userId, courseSlug },
-      {
-        $addToSet: { completedLessons: lessonId },
-        $set: {
-          lastLessonId: lessonId,
-          lastModuleId: moduleId ?? '',
-          totalLessons,
-        },
-      },
-      { upsert: true, new: true }
+    const courseTitle = (course as any)?.title || courseSlug;
+    const userName    = (user as any).name || 'Student';
+    const userEmail   = (user as any).email || '';
+
+    // ── Update progress via db-service ──
+    const result = await updateProgress(
+      { userId: auth.userId, courseSlug, lessonId, moduleId },
+      userName,
+      courseTitle
     );
 
-    /* ── Recalculate percent ── */
-    const pct =
-      totalLessons > 0
-        ? Math.round((progress.completedLessons.length / totalLessons) * 100)
-        : 0;
+    // ── If course just completed → send certificate email ──
+    if (result.certificateGenerated && result.certificate && userEmail) {
+      const alreadySent = await wasEmailSent('userId', auth.userId, 'certificate_ready');
 
-    progress.progressPercent = pct;
+      if (!alreadySent) {
+        let emailStatus: 'sent' | 'failed' = 'failed';
+        let errorMessage = '';
 
-    let certificateGenerated = false;
-    let certificate = null;
+        try {
+          const sent = await sendCertificateReadyEmail({
+            name:          userName,
+            email:         userEmail,
+            courseName:    result.certificate.courseName,
+            courseSlug,
+            certificateId: result.certificate.certificateId,
+            issuedAt:      result.certificate.issuedAt,
+          });
+          emailStatus = sent ? 'sent' : 'failed';
+          if (!sent) errorMessage = 'SendGrid returned non-202';
+        } catch (e: any) {
+          errorMessage = e?.message || 'Unknown error';
+          console.error('[Email] Certificate email failed:', errorMessage);
+        }
 
-    /* ── Course complete → generate certificate ── */
-    if (pct === 100 && !progress.completedAt) {
-      progress.completedAt = new Date();
-
-      // Check if certificate already exists
-      const existing = await Certificate.findOne({
-        userId: decoded.userId,
-        courseSlug,
-      });
-
-      if (!existing) {
-        const certId = generateCertificateId();
-        certificate = await Certificate.create({
-          userId:        decoded.userId,
+        await logEmail({
+          userId:        auth.userId,
+          email:         userEmail,
+          emailType:     'certificate_ready',
+          subject:       `Your Certificate is Ready — ${result.certificate.courseName}`,
+          status:        emailStatus,
+          errorMessage,
           courseSlug,
-          certificateId: certId,
-          studentName:   (user as any).name,
-          courseName:    (course as any)?.title ?? courseSlug,
-          issuedAt:      new Date(),
-          status:        'ready',
-          certificateUrl: `/api/certificates/${courseSlug}/download`,
+          courseName:    result.certificate.courseName,
+          certificateId: result.certificate.certificateId,
         });
-        certificateGenerated = true;
-      } else {
-        certificate = existing;
       }
     }
 
-    await progress.save();
-
     return NextResponse.json({
-      success: true,
-      progressPercent:  pct,
-      completedLessons: progress.completedLessons,
-      totalLessons,
-      completedAt:      progress.completedAt ?? null,
-      isComplete:       pct === 100,
-      certificateGenerated,
-      certificate: certificate
-        ? {
-            certificateId:  certificate.certificateId,
-            studentName:    certificate.studentName,
-            courseName:     certificate.courseName,
-            issuedAt:       certificate.issuedAt,
-            status:         certificate.status,
-            downloadUrl:    `/api/certificates/${courseSlug}/download`,
-          }
-        : null,
+      success:              true,
+      progressPercent:      result.progressPercent,
+      completedLessons:     result.completedLessons,
+      totalLessons:         result.totalLessons,
+      completedAt:          result.completedAt,
+      isComplete:           result.isCompleted,
+      certificateGenerated: result.certificateGenerated,
+      certificate:          result.certificate,
     });
+
   } catch (err: any) {
     console.error('[Complete Lesson]', err.message);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

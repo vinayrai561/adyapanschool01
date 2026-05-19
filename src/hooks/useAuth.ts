@@ -51,9 +51,13 @@ export function useAuth() {
         const response = await axios.get('/api/auth/me');
         setUser(response.data.user);
         setError(null);
-      } catch (err) {
+      } catch (err: any) {
         setUser(null);
-        // Not an error if user is not authenticated
+        // 401 is expected when user is not authenticated — suppress console noise
+        if (err?.response?.status !== 401) {
+          // Only log unexpected errors
+          console.warn('[useAuth] Unexpected error fetching user:', err?.response?.status);
+        }
       } finally {
         setLoading(false);
       }

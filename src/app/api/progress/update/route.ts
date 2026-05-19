@@ -1,70 +1,62 @@
 /**
  * POST /api/progress/update
  * Body: { courseSlug, lessonId, moduleId }
- * Marks a lesson as complete and recalculates progress %.
+ * Marks a lesson complete and recalculates progress %.
+ * Uses db-service for consistent persistence.
  */
 import { NextRequest, NextResponse } from 'next/server';
-import jwt from 'jsonwebtoken';
 import { connectToDatabase } from '@/lib/mongodb';
-import Progress from '@/models/Progress';
+import { protectRoute } from '@/lib/auth';
+import { sanitizeMongoInput } from '@/lib/security';
+import { updateProgress } from '@/lib/db-service';
+import AuthUser from '@/models/AuthUser';
 import Course from '@/models/Course';
+import { COURSE_CATALOGUE, withTotalLessons } from '@/lib/courseData';
 
 export async function POST(req: NextRequest) {
+  const auth = protectRoute(req);
+  if (auth instanceof NextResponse) return auth;
+
   try {
     await connectToDatabase();
 
-    /* ── Auth ── */
-    const token = req.cookies.get('authToken')?.value;
-    if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-
-    let decoded: { userId: string };
-    try {
-      decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key') as { userId: string };
-    } catch {
-      return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
-    }
-
-    const { courseSlug, lessonId, moduleId } = await req.json();
+    // ── Auth ──
+    const { courseSlug, lessonId, moduleId } = sanitizeMongoInput(await req.json());
     if (!courseSlug || !lessonId) {
       return NextResponse.json({ error: 'courseSlug and lessonId required' }, { status: 400 });
     }
 
-    /* ── Get course total lessons ── */
-    const course = await Course.findOne({ slug: courseSlug }).lean();
-    const totalLessons = (course as any)?.totalLessons ?? 0;
+    // ── Fetch user name for certificate generation ──
+    const user = await AuthUser.findById(auth.userId).lean();
+    const userName = (user as any)?.name || 'Student';
 
-    /* ── Upsert progress ── */
-    const progress = await Progress.findOneAndUpdate(
-      { userId: decoded.userId, courseSlug },
-      {
-        $addToSet: { completedLessons: lessonId },
-        $set: {
-          lastLessonId: lessonId,
-          lastModuleId: moduleId ?? '',
-          totalLessons,
-        },
-      },
-      { upsert: true, new: true }
+    // ── Ensure course exists ──
+    let course = await Course.findOne({ slug: courseSlug }).lean();
+    if (!course) {
+      const raw = COURSE_CATALOGUE.find(c => c.slug === courseSlug);
+      if (raw) {
+        const data = withTotalLessons(raw);
+        course = await Course.findOneAndUpdate(
+          { slug: data.slug }, { $set: data }, { upsert: true, new: true }
+        ).lean();
+      }
+    }
+
+    const result = await updateProgress(
+      { userId: auth.userId, courseSlug, lessonId, moduleId },
+      userName,
+      (course as any)?.title
     );
 
-    /* ── Recalculate percent ── */
-    const pct = totalLessons > 0
-      ? Math.round((progress.completedLessons.length / totalLessons) * 100)
-      : 0;
-
-    progress.progressPercent = pct;
-    if (pct === 100 && !progress.completedAt) {
-      progress.completedAt = new Date();
-    }
-    await progress.save();
-
     return NextResponse.json({
-      success: true,
-      progressPercent:  pct,
-      completedLessons: progress.completedLessons,
-      totalLessons,
-      completedAt: progress.completedAt ?? null,
+      success:          true,
+      progressPercent:  result.progressPercent,
+      completedLessons: result.completedLessons,
+      totalLessons:     result.totalLessons,
+      completedAt:      result.completedAt,
+      isComplete:       result.isCompleted,
     });
+
   } catch (err: any) {
     console.error('[Progress Update]', err.message);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

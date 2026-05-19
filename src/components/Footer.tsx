@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { motion } from 'framer-motion';
+import MarqueeBanner from '@/components/MarqueeBanner';
 
 /* ─── Data ─────────────────────────────────────────────────────────────── */
 
@@ -83,10 +84,14 @@ function NavLink({ href, label }: { href: string; label: string }) {
 
 const Footer = () => {
   return (
-    <footer
-      className="relative w-full overflow-hidden"
-      style={{ background: 'linear-gradient(135deg, #976b13ff 0%, #06064cff 50%, #180e02ff 100%)' }}
-    >
+    <>
+      {/* Marquee Banner — before footer for maximum visibility */}
+      <MarqueeBanner variant="glass" speed={28} />
+      
+      <footer
+        className="relative w-full overflow-hidden"
+        style={{ background: 'linear-gradient(135deg, #976b13ff 0%, #06064cff 50%, #180e02ff 100%)' }}
+      >
       {/* Decorative top border */}
       <div
         className="h-px w-full"
@@ -131,13 +136,13 @@ const Footer = () => {
               <motion.img
                 src="/adyapan-logo.png"
                 alt="Adyapan"
-                className="h-10 w-auto"
+                className="h-8 sm:h-10 w-auto"
                 whileHover={{ scale: 1.05 }}
                 transition={{ duration: 0.2 }}
               />
             </Link>
 
-            <p className="text-gray-400 text-sm leading-relaxed mb-6 max-w-xs">
+            <p className="text-gray-400 text-sm leading-relaxed mb-6 max-w-xs sm:max-w-sm">
               Transforming India's talent landscape through industry-relevant education, real-world experience, and career-focused programs.
             </p>
 
@@ -152,7 +157,7 @@ const Footer = () => {
                   aria-label={`Follow us on ${label}`}
                   whileHover={{ scale: 1.15, y: -2 }}
                   whileTap={{ scale: 0.92 }}
-                  className="w-10 h-10 rounded-xl flex items-center justify-center text-gray-400 hover:text-white transition-colors duration-200"
+                  className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center text-gray-400 hover:text-white transition-colors duration-200"
                   style={{
                     background: 'rgba(255,255,255,0.06)',
                     border: '1px solid rgba(255,255,255,0.1)',
@@ -197,7 +202,7 @@ const Footer = () => {
                   className="flex items-center gap-3 group min-h-[44px]"
                 >
                   <div
-                    className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-transform duration-200 group-hover:scale-110"
+                    className="w-7 h-7 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-transform duration-200 group-hover:scale-110"
                     style={{
                       background: 'linear-gradient(135deg, rgba(249,115,22,0.25), rgba(249,115,22,0.12))',
                       border: '1px solid rgba(249,115,22,0.3)',
@@ -222,7 +227,7 @@ const Footer = () => {
                   className="flex items-center gap-3 group min-h-[44px]"
                 >
                   <div
-                    className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-transform duration-200 group-hover:scale-110"
+                    className="w-7 h-7 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-transform duration-200 group-hover:scale-110"
                     style={{
                       background: 'linear-gradient(135deg, rgba(249,115,22,0.25), rgba(249,115,22,0.12))',
                       border: '1px solid rgba(249,115,22,0.3)',
@@ -243,7 +248,7 @@ const Footer = () => {
               <li>
                 <div className="flex items-start gap-3">
                   <div
-                    className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5"
+                    className="w-7 h-7 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5"
                     style={{
                       background: 'linear-gradient(135deg, rgba(249,115,22,0.25), rgba(249,115,22,0.12))',
                       border: '1px solid rgba(249,115,22,0.3)',
@@ -267,12 +272,35 @@ const Footer = () => {
           </div>
         </div>
 
-        {/* Divider */}
+        {/* ── Big brand text banner ── */}
         <div
-          className="h-px w-full mb-6"
-          style={{ background: 'linear-gradient(90deg, transparent, rgba(249,115,22,0.35), rgba(255,255,255,0.08), rgba(249,115,22,0.35), transparent)' }}
+          className="relative w-full overflow-hidden mb-6 flex items-center justify-center py-8 sm:py-10"
           aria-hidden="true"
-        />
+        >
+          <div className="flex items-center justify-center flex-wrap px-4">
+            {'adyapanschool'.split('').map((letter, i) => (
+              <motion.span
+                key={i}
+                whileHover={{
+                  y: [0, -8, 6, -5, 4, -2, 0],
+                  x: [0, -4, 4, -3, 3, -1, 0],
+                  rotate: [0, -8, 8, -5, 5, -2, 0],
+                  transition: { duration: 0.5, ease: 'easeInOut' },
+                }}
+                className="inline-block cursor-default select-none font-black"
+                style={{
+                  fontSize: 'clamp(2.8rem, 10vw, 7rem)',
+                  color: '#f97316',
+                  textShadow: '0 6px 0 rgba(180,60,0,0.5), 0 12px 24px rgba(249,115,22,0.25)',
+                  letterSpacing: '-0.02em',
+                  lineHeight: 1,
+                }}
+              >
+                {letter}
+              </motion.span>
+            ))}
+          </div>
+        </div>
 
         {/* ── Bottom bar ── */}
         <div className="flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4">
@@ -304,6 +332,7 @@ const Footer = () => {
         </div>
       </div>
     </footer>
+    </>
   );
 };
 

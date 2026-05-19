@@ -3,12 +3,19 @@ import jwt from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
 import { PrismaClient } from '@prisma/client';
 import { z } from 'zod';
+import {
+  getClientIp,
+  isRateLimited,
+  rateLimitResponse,
+  requireJwtSecret,
+  sanitizeMongoInput,
+} from '@/lib/security';
 
 const prisma = new PrismaClient();
 
 const ResetPasswordSchema = z.object({
   token: z.string().min(1, 'Token is required'),
-  password: z.string().min(6, 'Password must be at least 6 characters'),
+  password: z.string().min(8, 'Password must be at least 8 characters'),
   confirmPassword: z.string(),
 }).refine((data) => data.password === data.confirmPassword, {
   message: "Passwords don't match",
@@ -16,8 +23,13 @@ const ResetPasswordSchema = z.object({
 });
 
 export async function POST(request: NextRequest) {
+  const ip = getClientIp(request);
+  if (isRateLimited(`reset-password:${ip}`, 5, 15 * 60 * 1000)) {
+    return rateLimitResponse('Too many password reset attempts. Please try again later.');
+  }
+
   try {
-    const body = await request.json();
+    const body = sanitizeMongoInput(await request.json());
     const validatedData = ResetPasswordSchema.parse(body);
 
     // Verify token
@@ -25,7 +37,7 @@ export async function POST(request: NextRequest) {
     try {
       decoded = jwt.verify(
         validatedData.token,
-        process.env.JWT_SECRET || 'your-secret-key'
+        requireJwtSecret()
       ) as { userId: string; email: string; type: string };
     } catch (error) {
       return NextResponse.json(

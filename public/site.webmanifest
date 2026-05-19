@@ -1,0 +1,31 @@
+{
+  "name": "Adyapan — Learn, Earn & Get Placed",
+  "short_name": "Adyapan",
+  "description": "India's leading EdTech platform offering 65+ industry-relevant courses with placement support.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f5f0eb",
+  "theme_color": "#14162a",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/images/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/images/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/adyapan-logo.png",
+      "sizes": "any",
+      "type": "image/png"
+    }
+  ],
+  "categories": ["education", "productivity"],
+  "lang": "en-IN"
+}

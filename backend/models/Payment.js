@@ -14,7 +14,7 @@ const paymentSchema = new mongoose.Schema(
     // User Information
     userId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'AuthUser',
+      ref: 'User',
       default: null,
     },
     userName: {
@@ -157,10 +157,8 @@ const paymentSchema = new mongoose.Schema(
   }
 );
 
-// Indexes for fast lookups and uniqueness
+// Compound indexes (simple field indexes are declared inline above)
 paymentSchema.index({ userEmail: 1, createdAt: -1 });
-paymentSchema.index({ orderId: 1 });
-paymentSchema.index({ paymentId: 1 }, { unique: true });
 paymentSchema.index({ status: 1, createdAt: -1 });
 paymentSchema.index({ userId: 1, createdAt: -1 });
 
