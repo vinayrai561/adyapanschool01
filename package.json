@@ -18,7 +18,7 @@
     "seed:jobs": "node scripts/seedJobs.js",
     "db:check": "node scripts/check-database-data.js",
     "db:seed-recruiter": "node scripts/seed-sample-data.js",
-    "vercel-build": "npm install --legacy-peer-deps && next build"
+    "vercel-build": "next build"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.3.2",
