@@ -4,8 +4,7 @@
       "framework": "nextjs"
     },
     "backend": {
-      "entrypoint": "backend/server.js",
-      "rootDirectory": "./backend"
+      "entrypoint": "backend/server.js"
     }
   }
 }
