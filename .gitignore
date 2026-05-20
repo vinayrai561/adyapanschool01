@@ -59,3 +59,14 @@ Thumbs.db
 
 # Large generated/public artifacts
 public/brochures/
+node_modules/
+.env
+.env.local
+.env.production
+dist/
+build/
+.next/
+.vercel/
+.turbo/
+*.log
+.vscode/
